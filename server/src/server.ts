@@ -12,6 +12,7 @@ import { connect } from "./db/connect";
 import userRoutes from "./routes/user.route";
 import fileRoutes from "./routes/file.route";
 import authRoutes from "./routes/auth.route";
+import folderRoutes from "./routes/folder.route";
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ connect();
 app.use("/api/users", userRoutes);
 app.use("/api/files", fileRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/folders", folderRoutes);
 
 // Error handling
 app.use(errorLogger);

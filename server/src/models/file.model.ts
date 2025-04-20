@@ -11,7 +11,7 @@ const fileSchema = new Schema<IFile>(
             enum: ["document", "image", "video", "audio", "other"],
             required: true,
         },
-        folderPath: { type: String, maxlength: 255 },
+        folderPath: { type: String, default: "/", maxlength: 255 },
         accountId: {
             type: Schema.Types.ObjectId,
             ref: "User",

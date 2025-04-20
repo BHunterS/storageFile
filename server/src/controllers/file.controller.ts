@@ -5,6 +5,7 @@ import mime from "mime-types";
 import { NextFunction, RequestHandler, Response } from "express";
 
 import File from "../models/file.model";
+import Folder from "../models/folder.model";
 
 import { createError } from "../utils/createError";
 import { buildFileFilter, buildSortOptions } from "../utils/helpers";
@@ -70,7 +71,10 @@ export const uploadFile = async (
     next: NextFunction
 ) => {
     try {
-        const { type }: { type: fileType } = req.body;
+        const {
+            type,
+            folderPath = "/",
+        }: { type: fileType; folderPath: string } = req.body;
         const file: Express.Multer.File | undefined = req.file;
 
         if (!file) throw createError(400, "File not found!");
@@ -78,11 +82,20 @@ export const uploadFile = async (
         const accountId = req.userId;
         if (!accountId) throw createError(401, "User is not authorized!");
 
+        if (folderPath !== "/") {
+            const folder = await Folder.findOne({
+                path: folderPath,
+                accountId,
+            });
+
+            if (!folder) throw createError(404, "Parent folder not found!");
+        }
+
         const newFile = new File({
             name: file.filename,
             url: `${process.env.SERVER_URL}/api/files/${file.filename}`,
             type,
-            folderPath: `/uploads/${accountId}/${file.filename}`,
+            folderPath,
             accountId,
             extension: path.extname(file.originalname).slice(1),
             size: file.size,
