@@ -2,7 +2,6 @@ import express, { Router } from "express";
 import {
     uploadSingle,
     uploadFile,
-    getFilesByAccountId,
     getFile,
     renameFile,
     deleteFile,
@@ -13,7 +12,7 @@ import { verifyToken } from "../middlewares/verifyToken";
 const router: Router = express.Router();
 router.use(verifyToken);
 
-router.post("/", getFilesByAccountId);
+// router.post("/", getFilesByAccountId);
 router.get("/:name", getFile);
 router.post("/upload", uploadSingle, uploadFile);
 router.post("/rename", renameFile);

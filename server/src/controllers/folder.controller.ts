@@ -6,6 +6,7 @@ import File from "../models/file.model";
 import { createError } from "../utils/createError";
 
 import { RequestWithUserId, User } from "types";
+import { buildFileFilter, buildSortOptions } from "../utils/helpers";
 
 export const createFolder = async (
     req: RequestWithUserId,
@@ -90,8 +91,8 @@ export const getFolderContents = async (
 ) => {
     try {
         const accountId = req.userId;
-        const encodedFolderPath = req.body.folderPath || "/";
-        const folderPath = decodeURIComponent(encodedFolderPath);
+        const { encodedPath = "/", types, query, sort } = req.body;
+        const folderPath = decodeURIComponent(encodedPath);
 
         if (folderPath !== "/") {
             const folderExists = await Folder.findOne({
@@ -108,11 +109,16 @@ export const getFolderContents = async (
             parentFolder: folderPath,
         }).sort({ name: 1 });
 
-        const rawFiles = await File.find({
+        const filter: Record<string, any> = buildFileFilter(
             accountId,
             folderPath,
-        })
-            .sort({ name: 1 })
+            types,
+            query
+        );
+        const sortOptions: Record<string, 1 | -1> = buildSortOptions(sort);
+
+        const rawFiles = await File.find(filter)
+            .sort(sortOptions)
             .populate<{ accountId: User }>({
                 path: "accountId",
                 select: "name",

@@ -25,15 +25,15 @@ export const createFolder = async (
 
 export const getFolderContent = async (
     folderPath: string = "/",
-    type: string,
+    types: string,
     query: string,
     sort: string
 ): Promise<GetFolderContentResponse> => {
     const encodedPath: string = encodeURIComponent(folderPath);
     console.log(folderPath);
     const response: AxiosResponse = await axiosInstance.post(`/content`, {
-        folderPath: encodedPath,
-        type,
+        encodedPath,
+        types,
         query,
         sort,
     });

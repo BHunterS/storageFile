@@ -22,7 +22,6 @@ export const verifyToken: RequestHandler = (
         req.userId = decoded.userId;
         next();
     } catch (error) {
-        console.log("Error in verifyToken", error);
         throw error;
     }
 };
