@@ -19,7 +19,7 @@ router.post("/", createFolder);
 router.get("/", getFolders);
 
 // Отримання вмісту папки (файли та підпапки)
-router.get("/content", getFolderContents);
+router.post("/content", getFolderContents);
 
 // // Перейменування папки
 // router.put("/folders/:folderId/rename", renameFolder);

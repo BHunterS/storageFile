@@ -5,7 +5,7 @@ import File from "../models/file.model";
 
 import { createError } from "../utils/createError";
 
-import { RequestWithUserId } from "types";
+import { RequestWithUserId, User } from "types";
 
 export const createFolder = async (
     req: RequestWithUserId,
@@ -26,15 +26,23 @@ export const createFolder = async (
                 throw createError(404, "Parent folder not found!");
         }
 
-        const path =
+        let folderName = name;
+        let path =
             parentFolder === "/" ? `/${name}` : `${parentFolder}/${name}`;
 
-        const folderExists = await Folder.findOne({ path, accountId });
-        if (folderExists)
-            throw createError(400, "Folder with that name already exists!");
+        let counter = 1;
+        while (await Folder.findOne({ path, accountId })) {
+            const baseName = name.replace(/\(\d+\)$/, "");
+            folderName = `${baseName} (${counter})`;
+            path =
+                parentFolder === "/"
+                    ? `/${folderName}`
+                    : `${parentFolder}/${folderName}`;
+            counter++;
+        }
 
         const folder = new Folder({
-            name,
+            name: folderName,
             path,
             parentFolder,
             accountId,
@@ -82,7 +90,8 @@ export const getFolderContents = async (
 ) => {
     try {
         const accountId = req.userId;
-        const { folderPath = "/" } = req.body;
+        const encodedFolderPath = req.body.folderPath || "/";
+        const folderPath = decodeURIComponent(encodedFolderPath);
 
         if (folderPath !== "/") {
             const folderExists = await Folder.findOne({
@@ -99,13 +108,28 @@ export const getFolderContents = async (
             parentFolder: folderPath,
         }).sort({ name: 1 });
 
-        const files = await File.find({
+        const rawFiles = await File.find({
             accountId,
             folderPath,
-        }).sort({ name: 1 });
+        })
+            .sort({ name: 1 })
+            .populate<{ accountId: User }>({
+                path: "accountId",
+                select: "name",
+            });
+
+        const files = rawFiles.map((file) => {
+            const user = file.accountId;
+            return {
+                ...file.toObject(),
+                accountId: user._id,
+                ownerFullName: user.name,
+            };
+        });
 
         res.status(200).json({
             success: true,
+            message: "Files and folders are successfully found!",
             folderPath,
             folders,
             files,
