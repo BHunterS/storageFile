@@ -17,7 +17,7 @@ import MobileNavigation from "@/components/MobileNavigation";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import Sort from "@/components/Sort";
-import Card from "@/components/Card";
+import FileCard from "@/components/FileCard";
 import FolderCard from "@/components/FolderCard";
 
 import { Folder, SFile } from "@/types";
@@ -138,7 +138,8 @@ function App() {
                                             <FolderCard
                                                 key={folder._id}
                                                 folder={folder}
-                                                onClick={() =>
+                                                onClick={() => {}}
+                                                onDoubleClick={() =>
                                                     handleFolderClick(
                                                         folder.path
                                                     )
@@ -156,7 +157,10 @@ function App() {
                                 {files.length > 0 ? (
                                     <section className="file-list">
                                         {files.map((file: SFile) => (
-                                            <Card key={file._id} file={file} />
+                                            <FileCard
+                                                key={file._id}
+                                                file={file}
+                                            />
                                         ))}
                                     </section>
                                 ) : (

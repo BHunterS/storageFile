@@ -1,41 +1,30 @@
-import FormattedDateTime from "./FormattedDateTime";
-import { Folder as folder } from "@/types";
 import { Folder } from "lucide-react";
 
-const FolderCard = ({
-    folder,
-    onClick,
-    onContextMenu,
-}: {
+import ItemCard from "./ItemCard";
+
+import { Folder as folder } from "@/types";
+
+interface Props {
     folder: folder;
     onClick: () => void;
-    onContextMenu?: (
-        event: React.MouseEvent<HTMLDivElement, MouseEvent>
-    ) => void;
-}) => {
+    onDoubleClick: () => void;
+}
+
+const FolderCard = ({ folder, onClick, onDoubleClick }: Props) => {
     return (
         <div
             className="file-card"
             onClick={onClick}
-            onContextMenu={onContextMenu}
+            onDoubleClick={onDoubleClick}
         >
-            <div className="flex justify-between">
-                <div className="flex items-center space-x-2">
-                    <Folder className="size-24 text-yellow-700" />
-                </div>
-
-                <div className="flex flex-col items-end justify-between">
-                    ...
-                </div>
-            </div>
-
-            <div className="folder-card-details">
-                <p className="subtitle-2 line-clamp-1">{folder.name}</p>
-                <FormattedDateTime
-                    date={folder.createdAt}
-                    className="body-2 text-light-100"
-                />
-            </div>
+            <ItemCard
+                item={folder}
+                leftContent={
+                    <div className="flex items-center space-x-2">
+                        <Folder className="size-24 text-yellow-700" />
+                    </div>
+                }
+            />
         </div>
     );
 };
