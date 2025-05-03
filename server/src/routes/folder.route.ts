@@ -7,6 +7,7 @@ import {
     renameFolder,
     deleteFolder,
     moveFolder,
+    getFolderDetails,
 } from "../controllers/folder.controller";
 
 const router = express.Router();
@@ -17,6 +18,8 @@ router.post("/", createFolder);
 
 // Отримання списку папок (на певному рівні)
 router.get("/", getFolders);
+
+router.get("/:folderId/details", getFolderDetails);
 
 // Отримання вмісту папки (файли та підпапки)
 router.post("/content", getFolderContents);

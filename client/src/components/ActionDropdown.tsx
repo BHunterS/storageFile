@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useUploadStore } from "@/store/uploadStore";
 
 import { renameFile, deleteFile, updateFileUsers } from "@/api/file";
+import { deleteFolder, renameFolder } from "@/api/folder";
 
 import { isFile } from "@/utils/helpers";
 
@@ -26,9 +27,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { FileDetails, FolderDetails } from "@/components/ActionsModalContent";
 
 import { ActionType, Folder, SFile } from "@/types";
-import { deleteFolder, renameFolder } from "@/api/folder";
 
 const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -127,7 +128,11 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
                             onChange={(e) => setName(e.target.value)}
                         />
                     )}
-                    {/* {value === "details" && <FileDetails file={file} />} */}
+                    {value === "details" && isFile(item) ? (
+                        <FileDetails file={item as SFile} />
+                    ) : (
+                        <FolderDetails folder={item as Folder} />
+                    )}
                     {/*{value === "share" && (
                         <ShareInput
                             file={file}

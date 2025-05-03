@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+
+import { getFolderDetails } from "@/api/folder";
 
 import { convertFileSize, formatDateTime } from "@/utils/helpers";
 
@@ -7,9 +9,10 @@ import FormattedDateTime from "@/components/FormattedDateTime";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-import { GetMyFilesResponse } from "@/types";
+import { SFile, Folder } from "@/types";
+import { GetFolderDetailsResponse } from "@/types/folder";
 
-const ImageThumbnail = ({ file }: { file: GetMyFilesResponse }) => (
+const ImageThumbnail = ({ file }: { file: SFile }) => (
     <div className="file-details-thumbnail">
         <Thumbnail type={file.type} extension={file.extension} url={file.url} />
         <div className="flex flex-col">
@@ -19,14 +22,14 @@ const ImageThumbnail = ({ file }: { file: GetMyFilesResponse }) => (
     </div>
 );
 
-const DetailRow = ({ label, value }: { label: string; value: string }) => (
+const DetailRow = ({ label, value }: { label: string; value?: string }) => (
     <div className="flex">
         <p className="file-details-label text-left">{label}</p>
         <p className="file-details-value text-left">{value}</p>
     </div>
 );
 
-export const FileDetails = ({ file }: { file: GetMyFilesResponse }) => {
+export const FileDetails = ({ file }: { file: SFile }) => {
     return (
         <>
             <ImageThumbnail file={file} />
@@ -43,8 +46,52 @@ export const FileDetails = ({ file }: { file: GetMyFilesResponse }) => {
     );
 };
 
+export const FolderDetails = ({ folder }: { folder: Folder }) => {
+    const [folderDetails, setFolderDetails] =
+        useState<GetFolderDetailsResponse | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+
+    useEffect(() => {
+        const fetchFolderDetails = async () => {
+            setLoading(true);
+
+            const data = await getFolderDetails(folder._id);
+            setFolderDetails(data);
+
+            setLoading(false);
+        };
+
+        fetchFolderDetails();
+    }, [folder._id]);
+
+    return (
+        <>
+            <div className="space-y-4 px-2 pt-2">
+                <DetailRow label="Name:" value={folder.name} />
+                <DetailRow
+                    label="File count:"
+                    value={folderDetails?.details.fileCount?.toString()}
+                />
+                <DetailRow
+                    label="Total size:"
+                    value={convertFileSize(folderDetails?.details.totalSize)}
+                />
+
+                <DetailRow
+                    label="Last edit:"
+                    value={formatDateTime(folder.updatedAt)}
+                />
+                <DetailRow
+                    label="Created at:"
+                    value={formatDateTime(folder.createdAt)}
+                />
+            </div>
+        </>
+    );
+};
+
 interface Props {
-    file: GetMyFilesResponse;
+    file: SFile;
     onInputChange: React.Dispatch<React.SetStateAction<string[]>>;
     onRemove: (email: string) => void;
 }

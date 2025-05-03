@@ -6,6 +6,7 @@ import {
     CreateFolderResponse,
     GetFolderContentResponse,
     RenameFolderReponse,
+    GetFolderDetailsResponse,
 } from "@/types/folder";
 
 const axiosInstance = axios.create({
@@ -41,6 +42,16 @@ export const getFolderContent = async (
         query,
         sort,
     });
+    return response.data;
+};
+
+export const getFolderDetails = async (
+    folderId: string
+): Promise<GetFolderDetailsResponse> => {
+    const response: AxiosResponse = await axiosInstance.get(
+        `/${folderId}/details`
+    );
+
     return response.data;
 };
 

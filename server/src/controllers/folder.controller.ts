@@ -1,4 +1,5 @@
 import { NextFunction, Response } from "express";
+import mongoose from "mongoose";
 
 import Folder from "../models/folder.model";
 import File from "../models/file.model";
@@ -139,6 +140,54 @@ export const getFolderContents = async (
             folderPath,
             folders,
             files,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getFolderDetails = async (
+    req: RequestWithUserId,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const { folderId } = req.params;
+        const accountId = req.userId;
+
+        const folder = await Folder.findOne({ _id: folderId, accountId });
+        if (!folder) throw createError(404, "Folder not found!");
+
+        const folderPath = folder.path;
+
+        const result = await File.aggregate([
+            {
+                $match: {
+                    accountId: new mongoose.Types.ObjectId(accountId),
+                    folderPath: { $regex: `^${folderPath}(/|$)` },
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalSize: { $sum: "$size" },
+                    fileCount: { $sum: 1 },
+                },
+            },
+        ]);
+
+        console.log(result);
+
+        const totalSize = result[0]?.totalSize || 0;
+        const fileCount = result[0]?.fileCount || 0;
+
+        res.status(200).json({
+            success: true,
+            message: "Folder details successfully finded.",
+            details: {
+                totalSize,
+                fileCount,
+            },
         });
     } catch (error) {
         next(error);
