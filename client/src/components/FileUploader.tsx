@@ -1,6 +1,8 @@
 import React, { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
+import { useUploadStore } from "@/store/uploadStore";
+
 import { uploadFile } from "@/api/file";
 
 import { useToast } from "@/hooks/use-toast";
@@ -19,10 +21,11 @@ interface Props {
     folderPath: string;
 }
 
-// TODO refactor
 const FileUploader = ({ accountId, className, folderPath }: Props) => {
     const { toast } = useToast();
     const [files, setFiles] = useState<File[]>([]);
+
+    const { toggleTrigger } = useUploadStore();
 
     const onDrop = useCallback(
         async (acceptedFiles: File[]) => {
@@ -82,8 +85,9 @@ const FileUploader = ({ accountId, className, folderPath }: Props) => {
             });
 
             await Promise.all(uploadPromises);
+            toggleTrigger();
         },
-        [accountId, folderPath, toast]
+        [accountId, folderPath, toggleTrigger, toast]
     );
 
     const { getRootProps, getInputProps } = useDropzone({ onDrop });

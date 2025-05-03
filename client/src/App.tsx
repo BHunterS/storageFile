@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 
 import { useAuthStore } from "@/store/authStore";
+import { useUploadStore } from "@/store/uploadStore";
 
 import { getFolderContent, createFolder } from "./api/folder";
 
@@ -35,6 +36,8 @@ function App() {
     const [files, setFiles] = useState<SFile[]>([]);
     const [folders, setFolders] = useState<Folder[]>([]);
 
+    const { trigger } = useUploadStore();
+
     useEffect(() => {
         const fetchFolderContents = async () => {
             try {
@@ -51,7 +54,7 @@ function App() {
         };
 
         fetchFolderContents();
-    }, [currentFolder, query, reloadTrigger, sort, type]);
+    }, [currentFolder, query, reloadTrigger, sort, type, trigger]);
 
     const handleFolderClick = (folderPath: string) => {
         setCurrentFolder(folderPath);

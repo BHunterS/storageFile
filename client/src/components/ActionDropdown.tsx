@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
+import { useUploadStore } from "@/store/uploadStore";
+
 import { renameFile, deleteFile, updateFileUsers } from "@/api/file";
 
 import { isFile } from "@/utils/helpers";
@@ -35,6 +37,8 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
     const [name, setName] = useState(item.name);
     const [isLoading, setIsLoading] = useState(false);
     const [emails, setEmails] = useState<string[]>([]);
+
+    const { toggleTrigger } = useUploadStore();
 
     const fileActions = {
         rename: (item: SFile) => renameFile(item._id, name),
@@ -72,7 +76,10 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
                     action.value as keyof typeof folderActions
                 ](item as Folder);
             }
-            if (success) closeAllModals();
+            if (success) {
+                closeAllModals();
+                toggleTrigger();
+            }
         } catch (error) {
             console.error("Action failed:", error);
         } finally {
