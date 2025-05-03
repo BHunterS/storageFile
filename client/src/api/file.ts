@@ -1,38 +1,30 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 import { SERVER_URL } from "@/constants";
 
-import {
-    GetFilesRequest,
-    GetMyFilesResponse,
-    RenameFileRequest,
-    DeleteFileRequest,
-    UpdateFileUsersRequest,
-} from "@/types/file";
+const axiosInstance = axios.create({
+    baseURL: `${SERVER_URL}/api/files`,
+    headers: {
+        "Content-Type": "application/json",
+    },
+});
 
-export const getMyFiles = async (
-    params: GetFilesRequest = {}
-): Promise<GetMyFilesResponse[]> => {
-    try {
-        const response = await axios.post<{ files: GetMyFilesResponse[] }>(
-            `${SERVER_URL}/api/files`,
-            params
-        );
+export const uploadFile = async (data: FormData): Promise<boolean> => {
+    const response = await axios.post(`${SERVER_URL}/api/files/upload`, data, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
 
-        return response.data.files;
-    } catch (error) {
-        console.error("Error fetching files:", error);
-        throw error;
-    }
+    return response.data.success;
 };
 
 export const renameFile = async (
-    params: RenameFileRequest
+    fileId: string,
+    newName: string
 ): Promise<boolean> => {
     try {
-        const response = await axios.post(
-            `${SERVER_URL}/api/files/rename`,
-            params
+        const response: AxiosResponse = await axiosInstance.post(
+            `/${fileId}/rename`,
+            { newName }
         );
 
         return response.data.success;
@@ -42,11 +34,11 @@ export const renameFile = async (
     }
 };
 
-export const deleteFile = async ({
-    name,
-}: DeleteFileRequest): Promise<boolean> => {
+export const deleteFile = async (fileId: string): Promise<boolean> => {
     try {
-        const response = await axios.delete(`${SERVER_URL}/api/files/${name}`);
+        const response: AxiosResponse = await axiosInstance.delete(
+            `/${fileId}`
+        );
 
         return response.data.success;
     } catch (error) {
@@ -55,12 +47,12 @@ export const deleteFile = async ({
     }
 };
 
-export const updateFileUsers = async ({
-    fileId,
-    emails,
-}: UpdateFileUsersRequest): Promise<boolean> => {
+export const updateFileUsers = async (
+    fileId: string,
+    emails: string[]
+): Promise<boolean> => {
     try {
-        const response = await axios.post(`${SERVER_URL}/api/files/share`, {
+        const response = await axiosInstance.post(`/share`, {
             fileId,
             emails,
         });

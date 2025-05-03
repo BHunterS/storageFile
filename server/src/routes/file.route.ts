@@ -15,8 +15,8 @@ router.use(verifyToken);
 // router.post("/", getFilesByAccountId);
 router.get("/:name", getFile);
 router.post("/upload", uploadSingle, uploadFile);
-router.post("/rename", renameFile);
-router.delete("/:name", deleteFile);
+router.post("/:fileId/rename", renameFile);
+router.delete("/:fileId", deleteFile);
 // router.post("/share", shareFileWithUsers);
 
 export default router;

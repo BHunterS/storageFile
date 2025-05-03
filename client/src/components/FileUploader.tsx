@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
-import axios from "axios";
+import { uploadFile } from "@/api/file";
 
 import { useToast } from "@/hooks/use-toast";
 
@@ -56,17 +56,9 @@ const FileUploader = ({ accountId, className, folderPath }: Props) => {
                     formData.append("accountId", accountId ?? "");
                     formData.append("folderPath", folderPath);
 
-                    console.log(folderPath, "safda");
+                    const isUploaded = await uploadFile(formData);
 
-                    const response = await axios.post(
-                        "http://localhost:5000/api/files/upload",
-                        formData,
-                        {
-                            headers: { "Content-Type": "multipart/form-data" },
-                        }
-                    );
-
-                    if (response.data.success) {
+                    if (isUploaded) {
                         setFiles((prevFiles) =>
                             prevFiles.filter((f) => f.name !== file.name)
                         );

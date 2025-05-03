@@ -208,13 +208,14 @@ export const renameFile = async (
 ) => {
     try {
         const accountId: accountId = req.userId;
-        const { oldName, newName }: renameFileRequest = req.body;
+        const { fileId } = req.params;
+        const { newName }: renameFileRequest = req.body;
 
         if (!accountId) throw createError(401, "User is not authorized!");
-        if (!oldName || !newName)
-            throw createError(400, "Both oldName and newName are required!");
+        if (!fileId || !newName)
+            throw createError(400, "Both fileId and newName are required!");
 
-        const fileDoc = await File.findOne({ name: oldName, accountId });
+        const fileDoc = await File.findOne({ _id: fileId, accountId });
         if (!fileDoc) throw createError(404, "File not found!");
 
         const extension: string = fileDoc.extension
@@ -276,12 +277,12 @@ export const deleteFile = async (
 ) => {
     try {
         const accountId: accountId = req.userId;
-        const { name } = req.params;
+        const { fileId } = req.params;
 
         if (!accountId) throw createError(401, "User not authorized!");
-        if (!name) throw createError(400, "File name is required!");
+        if (!fileId) throw createError(400, "File name is required!");
 
-        const fileDoc = await File.findOne({ name, accountId });
+        const fileDoc = await File.findOne({ _id: fileId, accountId });
         if (!fileDoc) throw createError(404, "File not found!");
 
         const filePath: string = path.join(

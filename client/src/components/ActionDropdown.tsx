@@ -37,10 +37,9 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
     const [emails, setEmails] = useState<string[]>([]);
 
     const fileActions = {
-        rename: (item: SFile) =>
-            renameFile({ oldName: item.name, newName: name }),
-        share: (item: SFile) => updateFileUsers({ fileId: item._id, emails }),
-        delete: (item: SFile) => deleteFile({ name: item.name }),
+        rename: (item: SFile) => renameFile(item._id, name),
+        share: (item: SFile) => updateFileUsers(item._id, emails),
+        delete: (item: SFile) => deleteFile(item._id),
     };
 
     const folderActions = {
