@@ -145,7 +145,6 @@ export const getFolderContents = async (
     }
 };
 
-// TODO not working for sub folders
 export const renameFolder = async (
     req: RequestWithUserId,
     res: Response,
@@ -190,11 +189,14 @@ export const renameFolder = async (
             path: { $regex: `^${oldPath}/` },
         });
 
+        console.log(allSubfolders);
+
         for (const subfolder of allSubfolders) {
             subfolder.path = subfolder.path.replace(oldPath, newPath);
-            if (subfolder.parentFolder === oldPath) {
-                subfolder.parentFolder = newPath;
-            }
+            subfolder.parentFolder = subfolder.parentFolder.replace(
+                oldPath,
+                newPath
+            );
             await subfolder.save();
         }
 

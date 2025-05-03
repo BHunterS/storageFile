@@ -8,12 +8,10 @@ import File from "../models/file.model";
 import Folder from "../models/folder.model";
 
 import { createError } from "../utils/createError";
-import { buildFileFilter, buildSortOptions } from "../utils/helpers";
 
 import {
     accountId,
     fileType,
-    getFilesByAccountIdRequest,
     renameFileRequest,
     User,
     RequestWithUserId,
@@ -269,7 +267,6 @@ export const renameFile = async (
     }
 };
 
-// TODO change name to id
 export const deleteFile = async (
     req: RequestWithUserId,
     res: Response,
