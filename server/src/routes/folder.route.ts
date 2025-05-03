@@ -22,10 +22,10 @@ router.get("/", getFolders);
 router.post("/content", getFolderContents);
 
 // // Перейменування папки
-// router.put("/folders/:folderId/rename", renameFolder);
+router.put("/:folderId/rename", renameFolder);
 
 // // Видалення папки
-// router.delete("/folders/:folderId", deleteFolder);
+router.delete("/:folderId", deleteFolder);
 
 // // Переміщення папки
 // router.put("/folders/:folderId/move", moveFolder);

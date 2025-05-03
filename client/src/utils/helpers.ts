@@ -1,7 +1,11 @@
-import { FileType } from "@/types";
+import { FileType, Folder, SFile } from "@/types";
 
 export const parseStringify = (value: unknown) =>
     JSON.parse(JSON.stringify(value));
+
+export const isFile = (item: SFile | Folder): boolean => {
+    return "url" in item;
+};
 
 export const convertFileToUrl = (file: File) => URL.createObjectURL(file);
 

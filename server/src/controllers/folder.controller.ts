@@ -145,7 +145,12 @@ export const getFolderContents = async (
     }
 };
 
-export const renameFolder = async (req: RequestWithUserId, res: Response) => {
+// TODO not working for sub folders
+export const renameFolder = async (
+    req: RequestWithUserId,
+    res: Response,
+    next: NextFunction
+) => {
     try {
         const { folderId } = req.params;
         const { newName } = req.body;
@@ -156,12 +161,7 @@ export const renameFolder = async (req: RequestWithUserId, res: Response) => {
             accountId,
         });
 
-        if (!folder) {
-            return res.status(404).json({
-                success: false,
-                message: "Папка не знайдена",
-            });
-        }
+        if (!folder) throw createError(404, "Folder not found!");
 
         // Формуємо новий шлях
         const oldPath = folder.path;
@@ -171,25 +171,20 @@ export const renameFolder = async (req: RequestWithUserId, res: Response) => {
         const newPath =
             parentFolder === "/" ? `/${newName}` : `${parentFolder}/${newName}`;
 
-        // Перевіряємо чи не існує папки з таким новим шляхом
         const folderExists = await Folder.findOne({
             path: newPath,
             accountId,
         });
 
+        // TODO should be Folder (1) and so on
         if (folderExists && folderExists._id.toString() !== folderId) {
-            return res.status(400).json({
-                success: false,
-                message: "Папка з таким ім'ям вже існує в цьому місці",
-            });
+            throw createError(400, "Folder with this name already exists!");
         }
 
-        // Оновлюємо шлях цієї папки
         folder.name = newName;
         folder.path = newPath;
         await folder.save();
 
-        // Оновлюємо шляхи всіх вкладених папок
         const allSubfolders = await Folder.find({
             accountId,
             path: { $regex: `^${oldPath}/` },
@@ -203,7 +198,6 @@ export const renameFolder = async (req: RequestWithUserId, res: Response) => {
             await subfolder.save();
         }
 
-        // Оновлюємо folderPath у файлах
         await File.updateMany(
             { accountId, folderPath: oldPath },
             { $set: { folderPath: newPath } }
@@ -228,18 +222,19 @@ export const renameFolder = async (req: RequestWithUserId, res: Response) => {
 
         res.status(200).json({
             success: true,
+            message: "Folder successfully renamed.",
             folder,
         });
     } catch (error) {
-        console.error("Помилка перейменування папки:", error);
-        res.status(500).json({
-            success: false,
-            message: "Помилка сервера при перейменуванні папки",
-        });
+        next(error);
     }
 };
 
-export const deleteFolder = async (req: RequestWithUserId, res: Response) => {
+export const deleteFolder = async (
+    req: RequestWithUserId,
+    res: Response,
+    next: NextFunction
+) => {
     try {
         const { folderId } = req.params;
         const accountId = req.userId;
@@ -249,16 +244,10 @@ export const deleteFolder = async (req: RequestWithUserId, res: Response) => {
             accountId,
         });
 
-        if (!folder) {
-            return res.status(404).json({
-                success: false,
-                message: "Папка не знайдена",
-            });
-        }
+        if (!folder) throw createError(404, "Folder not found!");
 
         const folderPath = folder.path;
 
-        // Видаляємо всі вкладені папки
         await Folder.deleteMany({
             accountId,
             $or: [
@@ -267,7 +256,6 @@ export const deleteFolder = async (req: RequestWithUserId, res: Response) => {
             ],
         });
 
-        // Видаляємо всі файли в цій папці та підпапках
         await File.deleteMany({
             accountId,
             $or: [
@@ -278,14 +266,10 @@ export const deleteFolder = async (req: RequestWithUserId, res: Response) => {
 
         res.status(200).json({
             success: true,
-            message: "Папка та всі її вміст успішно видалені",
+            message: "Folder successfully deleted.",
         });
     } catch (error) {
-        console.error("Помилка видалення папки:", error);
-        res.status(500).json({
-            success: false,
-            message: "Помилка сервера при видаленні папки",
-        });
+        next(error);
     }
 };
 

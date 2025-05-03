@@ -9,3 +9,7 @@ export interface GetFolderContentResponse extends BaseResponse {
     folders: Folder[];
     files: SFile[];
 }
+
+export interface RenameFolderReponse extends BaseResponse {
+    folder: Folder;
+}

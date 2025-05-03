@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 
 import { renameFile, deleteFile, updateFileUsers } from "@/api/file";
 
-import { actionsDropdownItems } from "@/constants";
+import { isFile } from "@/utils/helpers";
 
-import { FileDetails, ShareInput } from "@/components/ActionsModalContent";
+import { actionsDropdownItems, SERVER_URL } from "@/constants";
+
 import {
     Dialog,
     DialogContent,
@@ -24,21 +25,36 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-import { ActionType, SFile } from "@/types";
+import { ActionType, Folder, SFile } from "@/types";
+import { deleteFolder, renameFolder } from "@/api/folder";
 
-const ActionDropdown = ({ file }: { file: SFile }) => {
+const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [action, setAction] = useState<ActionType | null>(null);
-    const [name, setName] = useState(file.name);
+    const [name, setName] = useState(item.name);
     const [isLoading, setIsLoading] = useState(false);
     const [emails, setEmails] = useState<string[]>([]);
+
+    const fileActions = {
+        rename: (item: SFile) =>
+            renameFile({ oldName: item.name, newName: name }),
+        share: (item: SFile) => updateFileUsers({ fileId: item._id, emails }),
+        delete: (item: SFile) => deleteFile({ name: item.name }),
+    };
+
+    const folderActions = {
+        rename: (item: Folder) => renameFolder(item._id, name),
+        // TODO share folder
+        share: (item: Folder) => item,
+        delete: (item: Folder) => deleteFolder(item._id),
+    };
 
     const closeAllModals = () => {
         setIsModalOpen(false);
         setIsDropdownOpen(false);
         setAction(null);
-        setName(file.name);
+        setName(item.name);
         setEmails([]);
     };
 
@@ -47,36 +63,44 @@ const ActionDropdown = ({ file }: { file: SFile }) => {
         setIsLoading(true);
         let success = false;
 
-        const actions = {
-            rename: () =>
-                renameFile({
-                    oldName: file.name,
-                    newName: name,
-                }),
-            share: () => updateFileUsers({ fileId: file._id, emails }),
-            delete: () =>
-                deleteFile({
-                    name: file.name,
-                }),
-        };
-
-        success = await actions[action.value as keyof typeof actions]();
-
-        if (success) closeAllModals();
-
-        setIsLoading(false);
+        try {
+            if (isFile(item)) {
+                success = await fileActions[
+                    action.value as keyof typeof fileActions
+                ](item as SFile);
+            } else {
+                success = await folderActions[
+                    action.value as keyof typeof folderActions
+                ](item as Folder);
+            }
+            if (success) closeAllModals();
+        } catch (error) {
+            console.error("Action failed:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const handleRemoveUser = async (email: string) => {
-        const updatedEmails = emails.filter((e) => e !== email);
+    // const handleRemoveUser = async (email: string) => {
+    //     const updatedEmails = emails.filter((e) => e !== email);
 
-        const success = await updateFileUsers({
-            fileId: file._id,
-            emails: updatedEmails,
-        });
+    //     const success = await updateFileUsers({
+    //         fileId: file._id,
+    //         emails: updatedEmails,
+    //     });
 
-        if (success) setEmails(updatedEmails);
-        closeAllModals();
+    //     if (success) setEmails(updatedEmails);
+    //     closeAllModals();
+    // };
+
+    const handleClick = (actionItem: ActionType): void => {
+        const list = ["rename", "share", "delete", "details"];
+
+        setAction(actionItem);
+
+        if (list.includes(actionItem.value)) {
+            setIsModalOpen(true);
+        }
     };
 
     const renderDialogContent = () => {
@@ -97,19 +121,19 @@ const ActionDropdown = ({ file }: { file: SFile }) => {
                             onChange={(e) => setName(e.target.value)}
                         />
                     )}
-                    {value === "details" && <FileDetails file={file} />}
-                    {value === "share" && (
+                    {/* {value === "details" && <FileDetails file={file} />} */}
+                    {/*{value === "share" && (
                         <ShareInput
                             file={file}
                             onInputChange={setEmails}
                             onRemove={handleRemoveUser}
                         />
-                    )}
+                    )} */}
                     {value === "delete" && (
                         <p className="delete-confirmation">
                             Are you sure you want to delete{` `}
                             <span className="delete-file-name">
-                                {file.name}
+                                {item.name}
                             </span>
                             ?
                         </p>
@@ -158,9 +182,9 @@ const ActionDropdown = ({ file }: { file: SFile }) => {
                         height={34}
                     />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent className="min-w-[200px] max-w-[200px]">
                     <DropdownMenuLabel className="max-w-[200px] truncate">
-                        {file.name}
+                        {item.name}
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {actionsDropdownItems.map((actionItem) => (
@@ -168,24 +192,17 @@ const ActionDropdown = ({ file }: { file: SFile }) => {
                             key={actionItem.value}
                             className="shad-dropdown-item"
                             onClick={() => {
-                                setAction(actionItem);
-
-                                if (
-                                    [
-                                        "rename",
-                                        "share",
-                                        "delete",
-                                        "details",
-                                    ].includes(actionItem.value)
-                                ) {
-                                    setIsModalOpen(true);
-                                }
+                                handleClick(actionItem);
                             }}
                         >
                             {actionItem.value === "download" ? (
                                 <Link
-                                    to={`${file.url}?download=true`}
-                                    download={file.name}
+                                    to={`${
+                                        "url" in item
+                                            ? item.url + "?download=true"
+                                            : `${SERVER_URL}/api/folders${item.path}?download=true`
+                                    }`}
+                                    download={item.name}
                                     className="flex items-center gap-2"
                                 >
                                     <img

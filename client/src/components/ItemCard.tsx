@@ -1,6 +1,7 @@
-import FormattedDateTime from "./FormattedDateTime";
+import FormattedDateTime from "@/components/FormattedDateTime";
+import ActionDropdown from "@/components/ActionDropdown";
+
 import { Folder, SFile } from "@/types";
-import ActionDropdown from "./ActionDropdown";
 
 interface Props {
     item: SFile | Folder;
@@ -14,10 +15,10 @@ const ItemCard = ({ item, leftContent, bottomContent }: Props) => {
             <div className="flex justify-between">
                 {leftContent}
 
-                {/* <div className="flex flex-col items-end justify-between">
-                    <ActionDropdown file={file} />
-                    <p className="body-1">{convertFileSize(file.size)}</p>
-                </div> */}
+                <div className="flex flex-col items-end justify-between">
+                    <ActionDropdown item={item} />
+                    {/* <p className="body-1">{convertFileSize(item.size)}</p> */}
+                </div>
             </div>
 
             <div className="file-card-details">
