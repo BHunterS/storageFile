@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
+import { FolderPlus, Loader, Delete } from "lucide-react";
+
 import { useAuthStore } from "@/store/authStore";
 import { useUploadStore } from "@/store/uploadStore";
 
-import { getFolderContent, createFolder } from "./api/folder";
+import { getFolderContent, createFolder, deleteFolder } from "@/api/folder";
 
 import { useQueryParams } from "./hooks/useQueryParams";
 
@@ -14,6 +16,8 @@ import {
     ContextMenuContent,
     ContextMenuItem,
 } from "@radix-ui/react-context-menu";
+
+import { Separator } from "@/components/ui/separator";
 
 import MobileNavigation from "@/components/MobileNavigation";
 import Sidebar from "@/components/Sidebar";
@@ -25,7 +29,6 @@ import FolderBreadcrumb from "@/components/FolderBreadcrumb";
 
 import { Folder, SFile } from "@/types";
 import { GetFolderContentResponse } from "./types/folder";
-import { FolderPlus, Loader } from "lucide-react";
 
 function App() {
     const { type, query, sort } = useQueryParams();
@@ -37,6 +40,7 @@ function App() {
     const [loading, setLoading] = useState<boolean>(false);
     const [files, setFiles] = useState<SFile[]>([]);
     const [folders, setFolders] = useState<Folder[]>([]);
+    const [selectedFolders, setSelectedFolders] = useState<string[]>([]);
 
     const { trigger, toggleTrigger } = useUploadStore();
 
@@ -61,11 +65,24 @@ function App() {
     useEffect(() => {
         const folderPath = decodeURIComponent(location.pathname) || "/";
         setCurrentFolder(folderPath);
-        console.log("Set current folder to ", folderPath);
     }, [location.pathname]);
 
-    const handleFolderClick = (folderPath: string) => {
-        console.log("Navigate to ", folderPath);
+    useEffect(() => {
+        console.log(selectedFolders);
+    }, [selectedFolders]);
+
+    const handleFolderClick = (folderId: string) => {
+        setSelectedFolders((prevSelected) => {
+            if (prevSelected.includes(folderId)) {
+                return prevSelected.filter((id) => id !== folderId);
+            } else {
+                return [...prevSelected, folderId];
+            }
+        });
+    };
+
+    const handleFolderDoubleClick = (folderPath: string) => {
+        setSelectedFolders([]);
         navigate(encodeURI(folderPath));
     };
 
@@ -83,6 +100,25 @@ function App() {
             toggleTrigger();
         } catch (err) {
             console.error("Error creating folder:", err);
+        }
+    };
+
+    const handleDelete = async () => {
+        try {
+            await Promise.all(
+                selectedFolders.map((folderId) => deleteFolder(folderId))
+            );
+
+            setFolders((prevFolders) =>
+                prevFolders.filter(
+                    (folder) => !selectedFolders.includes(folder._id)
+                )
+            );
+
+            setSelectedFolders([]);
+            toggleTrigger();
+        } catch (error) {
+            console.error("Error while delete folders:", error);
         }
     };
 
@@ -137,9 +173,16 @@ function App() {
                                             <FolderCard
                                                 key={folder._id}
                                                 folder={folder}
-                                                onClick={() => {}}
-                                                onDoubleClick={() =>
+                                                isSelected={selectedFolders.includes(
+                                                    folder._id
+                                                )}
+                                                onClick={() => {
                                                     handleFolderClick(
+                                                        folder._id
+                                                    );
+                                                }}
+                                                onDoubleClick={() =>
+                                                    handleFolderDoubleClick(
                                                         folder.path
                                                     )
                                                 }
@@ -175,9 +218,21 @@ function App() {
                             onClick={() => handleCreateFolder("New Folder")}
                             className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
                         >
-                            <FolderPlus className="h-4 w-4 text-zinc-500" />
+                            <FolderPlus className="h-6 w-6 text-zinc-500" />
                             <span>Create Folder</span>
                         </ContextMenuItem>
+                        {selectedFolders.length > 0 && (
+                            <>
+                                <Separator />
+                                <ContextMenuItem
+                                    onClick={handleDelete}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
+                                >
+                                    <Delete className="h-6 w-6 text-rose-700" />
+                                    <span>Delete</span>
+                                </ContextMenuItem>
+                            </>
+                        )}
                     </ContextMenuContent>
                 </ContextMenu>
             </section>
