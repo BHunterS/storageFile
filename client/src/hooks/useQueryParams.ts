@@ -9,7 +9,7 @@ export const useQueryParams = () => {
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);
-        setType(location.pathname.split("/")[1]);
+        setType(params.get("types") || "");
         setQuery(params.get("query") || "");
         setSort(params.get("sort") || "");
     }, [location]);

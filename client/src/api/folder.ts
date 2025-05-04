@@ -35,7 +35,6 @@ export const getFolderContent = async (
     sort: string
 ): Promise<GetFolderContentResponse> => {
     const encodedPath: string = encodeURIComponent(folderPath);
-    console.log(folderPath);
     const response: AxiosResponse = await axiosInstance.post("/content", {
         encodedPath,
         types,
