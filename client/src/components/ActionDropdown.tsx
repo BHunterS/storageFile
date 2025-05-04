@@ -209,9 +209,10 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
                             {actionItem.value === "download" ? (
                                 <Link
                                     to={`${
-                                        "url" in item
-                                            ? item.url + "?download=true"
-                                            : `${SERVER_URL}/api/folders${item.path}?download=true`
+                                        isFile(item)
+                                            ? (item as SFile).url +
+                                              "?download=true"
+                                            : `${SERVER_URL}/api/folders/${item._id}/download`
                                     }`}
                                     download={item.name}
                                     className="flex items-center gap-2"

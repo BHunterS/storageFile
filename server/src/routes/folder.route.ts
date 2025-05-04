@@ -8,6 +8,7 @@ import {
     deleteFolder,
     moveFolder,
     getFolderDetails,
+    downloadFolderAsZip,
 } from "../controllers/folder.controller";
 
 const router = express.Router();
@@ -20,6 +21,8 @@ router.post("/", createFolder);
 router.get("/", getFolders);
 
 router.get("/:folderId/details", getFolderDetails);
+
+router.get("/:folderId/download", downloadFolderAsZip);
 
 // Отримання вмісту папки (файли та підпапки)
 router.post("/content", getFolderContents);

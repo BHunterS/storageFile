@@ -111,46 +111,6 @@ export const uploadFile = async (
     }
 };
 
-// export const getFilesByAccountId = async (
-//     req: RequestWithUserId,
-//     res: Response,
-//     next: NextFunction
-// ) => {
-//     try {
-//         const { types, name, sort }: getFilesByAccountIdRequest = req.body;
-//         const accountId: accountId = req.userId;
-
-//         if (!accountId) throw createError(401, "User not authorized!");
-
-//         const filter: Record<string, any> = buildFileFilter(
-//             accountId,
-//             types,
-//             name
-//         );
-//         const sortOptions: Record<string, 1 | -1> | null =
-//             buildSortOptions(sort);
-
-//         const files = await File.find(filter)
-//             .sort(sortOptions || {})
-//             .populate<{ accountId: User }>({
-//                 path: "accountId",
-//                 select: "name",
-//             });
-//         const filesWithOwner = files.map((file) => {
-//             const user = file.accountId;
-//             return {
-//                 ...file.toObject(),
-//                 accountId: user._id,
-//                 ownerFullName: user.name,
-//             };
-//         });
-
-//         res.status(200).json({ success: true, files: filesWithOwner });
-//     } catch (error) {
-//         next(error);
-//     }
-// };
-
 export const getFile = async (
     req: RequestWithUserId,
     res: Response,

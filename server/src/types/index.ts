@@ -24,7 +24,7 @@ export interface IFile extends Document {
     name: string;
     url: string;
     type: fileType;
-    folderPath?: string;
+    folderPath: string;
     accountId: Types.ObjectId;
     extension?: string;
     size?: number;
@@ -34,7 +34,6 @@ export interface IFile extends Document {
 }
 
 export interface IFolder extends Document {
-    _id?: string;
     name: string;
     path: string;
     parentFolder: string;

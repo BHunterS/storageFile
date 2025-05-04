@@ -1,5 +1,8 @@
 import { NextFunction, Response } from "express";
 import mongoose from "mongoose";
+import archiver from "archiver";
+import path from "path";
+import fs from "fs";
 
 import Folder from "../models/folder.model";
 import File from "../models/file.model";
@@ -211,9 +214,7 @@ export const renameFolder = async (
 
         if (!folder) throw createError(404, "Folder not found!");
 
-        // Формуємо новий шлях
         const oldPath = folder.path;
-        const oldName = folder.name;
         const parentFolder = folder.parentFolder;
 
         const newPath =
@@ -225,7 +226,7 @@ export const renameFolder = async (
         });
 
         // TODO should be Folder (1) and so on
-        if (folderExists && folderExists._id.toString() !== folderId) {
+        if (folderExists && (folderExists._id as string) !== folderId) {
             throw createError(400, "Folder with this name already exists!");
         }
 
@@ -378,7 +379,7 @@ export const moveFolder = async (req: RequestWithUserId, res: Response) => {
             accountId,
         });
 
-        if (folderExists && folderExists._id.toString() !== folderId) {
+        if (folderExists && (folderExists._id as string) !== folderId) {
             return res.status(400).json({
                 success: false,
                 message: "Папка з таким ім'ям вже існує в папці призначення",
@@ -436,5 +437,113 @@ export const moveFolder = async (req: RequestWithUserId, res: Response) => {
             success: false,
             message: "Помилка сервера при переміщенні папки",
         });
+    }
+};
+
+async function getAllSubfolders(folderId: string) {
+    const folder = await Folder.findById(folderId);
+    if (!folder) throw createError(404, "Folder not found!");
+
+    const subfolders = await Folder.find({ parentFolder: folder.path });
+    const result = [folder];
+
+    for (const subfolder of subfolders) {
+        const subfolderChildren = await getAllSubfolders(
+            subfolder._id as string
+        );
+        result.push(...subfolderChildren);
+    }
+
+    return result;
+}
+
+// TODO make accountId not undefined
+export const downloadFolderAsZip = async (
+    req: RequestWithUserId,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const { folderId } = req.params;
+        const accountId = req.userId;
+
+        const mainFolder = await Folder.findOne({
+            _id: folderId,
+            accountId,
+        });
+        if (!mainFolder) throw createError(404, "Folder not found!");
+
+        const allFolders = await getAllSubfolders(folderId);
+        const archive = archiver("zip", {
+            zlib: { level: 9 },
+        });
+
+        archive.on("error", () => {
+            throw createError(500, "Error in making zip file!");
+        });
+
+        res.setHeader("Content-Type", "application/zip");
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="${mainFolder.name}.zip"`
+        );
+
+        archive.pipe(res);
+
+        const tempDir = path.join(
+            process.cwd(),
+            "temp",
+            `download-${Date.now()}`
+        );
+        fs.mkdirSync(tempDir, { recursive: true });
+
+        try {
+            for (const folder of allFolders) {
+                const relativePath =
+                    folder.path === mainFolder.path
+                        ? "/"
+                        : folder.path.replace(mainFolder.path, "");
+
+                if (relativePath !== "/") {
+                    archive.append(Buffer.alloc(0), {
+                        name: relativePath.substring(1) + "/",
+                    });
+                }
+
+                const files = await File.find({ folderPath: folder.path });
+
+                for (const file of files) {
+                    const fileRelativePath =
+                        file.folderPath === mainFolder.path
+                            ? file.name
+                            : file.folderPath
+                                  .replace(mainFolder.path, "")
+                                  .substring(1) +
+                              "/" +
+                              file.name;
+
+                    const filePath = path.join(
+                        __dirname,
+                        "..",
+                        "..",
+                        "uploads",
+                        accountId || "",
+                        file.name
+                    );
+
+                    archive.file(filePath, { name: fileRelativePath });
+                }
+            }
+
+            await archive.finalize();
+        } finally {
+            setTimeout(() => {
+                fs.rm(tempDir, { recursive: true, force: true }, (err) => {
+                    console.error(err);
+                });
+            }, 1000);
+        }
+    } catch (error) {
+        next(error);
     }
 };
