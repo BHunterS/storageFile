@@ -6,9 +6,16 @@ import { FolderPlus, Loader, Delete } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useUploadStore } from "@/store/uploadStore";
 
-import { getFolderContent, createFolder, deleteFolder } from "@/api/folder";
+import {
+    getFolderContent,
+    createFolder,
+    deleteFolder,
+    getFolderDetails,
+} from "@/api/folder";
 
 import { useQueryParams } from "./hooks/useQueryParams";
+
+import { convertFileSize } from "@/utils/helpers";
 
 import {
     ContextMenu,
@@ -41,35 +48,9 @@ function App() {
     const [files, setFiles] = useState<SFile[]>([]);
     const [folders, setFolders] = useState<Folder[]>([]);
     const [selectedFolders, setSelectedFolders] = useState<string[]>([]);
+    const [totalRootSize, setTotalRootSize] = useState<string>("0 KB");
 
     const { trigger, toggleTrigger } = useUploadStore();
-
-    useEffect(() => {
-        const fetchFolderContents = async () => {
-            try {
-                setLoading(true);
-                const { folders, files }: GetFolderContentResponse =
-                    await getFolderContent(currentFolder, type, query, sort);
-                setFolders(folders);
-                setFiles(files);
-            } catch (err) {
-                console.error("Error fetching folder contents:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchFolderContents();
-    }, [currentFolder, query, sort, type, trigger]);
-
-    useEffect(() => {
-        const folderPath = decodeURIComponent(location.pathname) || "/";
-        setCurrentFolder(folderPath);
-    }, [location.pathname]);
-
-    useEffect(() => {
-        console.log(selectedFolders);
-    }, [selectedFolders]);
 
     const handleFolderClick = (folderId: string) => {
         setSelectedFolders((prevSelected) => {
@@ -122,6 +103,42 @@ function App() {
         }
     };
 
+    useEffect(() => {
+        const fetchFolderContents = async () => {
+            try {
+                setLoading(true);
+                const { folders, files }: GetFolderContentResponse =
+                    await getFolderContent(currentFolder, type, query, sort);
+                setFolders(folders);
+                setFiles(files);
+            } catch (err) {
+                console.error("Error fetching folder contents:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchFolderContents();
+    }, [currentFolder, query, sort, type, trigger]);
+
+    useEffect(() => {
+        const folderPath = decodeURIComponent(location.pathname) || "/";
+        setCurrentFolder(folderPath);
+    }, [location.pathname]);
+
+    useEffect(() => {
+        const fetchFolderDetails = async () => {
+            setLoading(true);
+
+            const data = await getFolderDetails("root");
+            setTotalRootSize(convertFileSize(data.details.totalSize));
+
+            setLoading(false);
+        };
+
+        fetchFolderDetails();
+    }, [trigger]);
+
     return (
         <main className="flex h-screen">
             <Sidebar {...user} />
@@ -147,7 +164,9 @@ function App() {
                                     <div className="total-size-section">
                                         <p className="body-1">
                                             Total:{" "}
-                                            <span className="h5">0 MB</span>
+                                            <span className="h5">
+                                                {totalRootSize}
+                                            </span>
                                         </p>
 
                                         <div className="sort-container">
@@ -160,14 +179,16 @@ function App() {
                                     </div>
                                 </section>
 
-                                {loading && (
-                                    <div className="absolute inset-0 bg-white bg-opacity-70 flex justify-center items-center z-10">
-                                        <Loader className="w-12 h-12 animate-spin text-blue-500" />
-                                    </div>
-                                )}
+                                {
+                                    /* TODO global loader */
+                                    loading && (
+                                        <div className="absolute inset-0 bg-white bg-opacity-70 flex justify-center items-center z-10">
+                                            <Loader className="w-12 h-12 animate-spin text-blue-500" />
+                                        </div>
+                                    )
+                                }
 
-                                <h2 className="h3 mb-4 self-start">Folders</h2>
-                                {folders.length > 0 ? (
+                                {folders.length > 0 || files.length > 0 ? (
                                     <section className="file-list">
                                         {folders.map((folder: Folder) => (
                                             <FolderCard
@@ -188,16 +209,6 @@ function App() {
                                                 }
                                             />
                                         ))}
-                                    </section>
-                                ) : (
-                                    <p className="empty-list">
-                                        No folders found!
-                                    </p>
-                                )}
-
-                                <h2 className="h3 mb-4 self-start">Files</h2>
-                                {files.length > 0 ? (
-                                    <section className="file-list">
                                         {files.map((file: SFile) => (
                                             <FileCard
                                                 key={file._id}
@@ -207,7 +218,8 @@ function App() {
                                     </section>
                                 ) : (
                                     <p className="empty-list">
-                                        No files uploaded
+                                        No content here! Create or download some
+                                        files.
                                     </p>
                                 )}
                             </div>

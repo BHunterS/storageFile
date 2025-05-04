@@ -26,9 +26,13 @@ export const buildSortOptions = (sort?: string): Record<string, 1 | -1> => {
     const validFields: string[] = ["name", "size", "createdAt"];
     const validDirections: string[] = ["asc", "desc"];
 
+    console.log(field, direction);
+
     if (!validFields.includes(field) || !validDirections.includes(direction)) {
         return defaultSort;
     }
+
+    console.log({ [field]: direction === "asc" ? 1 : -1 });
 
     return { [field]: direction === "asc" ? 1 : -1 };
 };

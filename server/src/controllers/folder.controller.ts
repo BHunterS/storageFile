@@ -108,11 +108,6 @@ export const getFolderContents = async (
                 throw createError(404, "Parent folder not found!");
         }
 
-        const folders = await Folder.find({
-            accountId,
-            parentFolder: folderPath,
-        }).sort({ name: 1 });
-
         const filter: Record<string, any> = buildFileFilter(
             accountId,
             folderPath,
@@ -120,6 +115,11 @@ export const getFolderContents = async (
             query
         );
         const sortOptions: Record<string, 1 | -1> = buildSortOptions(sort);
+
+        const folders = await Folder.find({
+            accountId,
+            parentFolder: folderPath,
+        }).sort(sortOptions);
 
         const rawFiles = await File.find(filter)
             .sort(sortOptions)
@@ -158,17 +158,20 @@ export const getFolderDetails = async (
         const { folderId } = req.params;
         const accountId = req.userId;
 
-        const folder = await Folder.findOne({ _id: folderId, accountId });
-        if (!folder) throw createError(404, "Folder not found!");
+        const matchFilter: any = {
+            accountId: new mongoose.Types.ObjectId(accountId),
+        };
 
-        const folderPath = folder.path;
+        if (folderId !== "root") {
+            const folder = await Folder.findOne({ _id: folderId, accountId });
+            if (!folder) throw createError(404, "Folder not found!");
+
+            matchFilter.folderPath = { $regex: `^${folder.path}(/|$)` };
+        }
 
         const result = await File.aggregate([
             {
-                $match: {
-                    accountId: new mongoose.Types.ObjectId(accountId),
-                    folderPath: { $regex: `^${folderPath}(/|$)` },
-                },
+                $match: matchFilter,
             },
             {
                 $group: {
