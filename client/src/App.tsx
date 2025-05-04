@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import { useAuthStore } from "@/store/authStore";
 import { useUploadStore } from "@/store/uploadStore";
@@ -20,23 +21,24 @@ import Header from "@/components/Header";
 import Sort from "@/components/Sort";
 import FileCard from "@/components/FileCard";
 import FolderCard from "@/components/FolderCard";
+import FolderBreadcrumb from "@/components/FolderBreadcrumb";
 
 import { Folder, SFile } from "@/types";
 import { GetFolderContentResponse } from "./types/folder";
-import Breadcrumb from "./components/Breadcrumb";
 import { FolderPlus, Loader } from "lucide-react";
 
 function App() {
     const { type, query, sort } = useQueryParams();
     const { user } = useAuthStore();
+    const navigate = useNavigate();
+    const location = useLocation();
 
     const [currentFolder, setCurrentFolder] = useState<string>("/");
     const [loading, setLoading] = useState<boolean>(false);
-    const [reloadTrigger, setReloadTrigger] = useState(false);
     const [files, setFiles] = useState<SFile[]>([]);
     const [folders, setFolders] = useState<Folder[]>([]);
 
-    const { trigger } = useUploadStore();
+    const { trigger, toggleTrigger } = useUploadStore();
 
     useEffect(() => {
         const fetchFolderContents = async () => {
@@ -54,21 +56,17 @@ function App() {
         };
 
         fetchFolderContents();
-    }, [currentFolder, query, reloadTrigger, sort, type, trigger]);
+    }, [currentFolder, query, sort, type, trigger]);
+
+    useEffect(() => {
+        const folderPath = decodeURIComponent(location.pathname) || "/";
+        setCurrentFolder(folderPath);
+        console.log("Set current folder to ", folderPath);
+    }, [location.pathname]);
 
     const handleFolderClick = (folderPath: string) => {
-        setCurrentFolder(folderPath);
-    };
-
-    const handleNavigateUp = () => {
-        if (currentFolder === "/") return;
-
-        const lastSlashIndex = currentFolder.lastIndexOf("/");
-        if (lastSlashIndex <= 0) {
-            setCurrentFolder("/");
-        } else {
-            setCurrentFolder(currentFolder.substring(0, lastSlashIndex));
-        }
+        console.log("Navigate to ", folderPath);
+        navigate(encodeURI(folderPath));
     };
 
     const handleCreateFolder = async (folderName: string) => {
@@ -82,7 +80,7 @@ function App() {
                 sort
             );
             setFolders(folders);
-            setReloadTrigger((prev) => !prev);
+            toggleTrigger();
         } catch (err) {
             console.error("Error creating folder:", err);
         }
@@ -104,10 +102,8 @@ function App() {
                         <div className="main-content">
                             <div className="page-container">
                                 <section className="w-full">
-                                    <Breadcrumb
-                                        path={currentFolder}
-                                        onNavigate={setCurrentFolder}
-                                        onNavigateUp={handleNavigateUp}
+                                    <FolderBreadcrumb
+                                        currentFolder={currentFolder}
                                     />
 
                                     <h1 className="h1 capitalize">{type}</h1>
