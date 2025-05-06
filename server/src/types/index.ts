@@ -29,6 +29,9 @@ export interface IFile extends Document {
     extension?: string;
     size?: number;
     users: Types.ObjectId[];
+    isDeleted: boolean;
+    deletedAt?: Date;
+    originalPath?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -39,6 +42,9 @@ export interface IFolder extends Document {
     parentFolder: string;
     accountId: Types.ObjectId | string;
     users?: Types.ObjectId[] | string[];
+    isDeleted: boolean;
+    deletedAt?: Date;
+    originalPath?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }

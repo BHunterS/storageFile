@@ -295,6 +295,7 @@ export const deleteFolder = async (
     try {
         const { folderId } = req.params;
         const accountId = req.userId;
+        const { permament = false } = req.query;
 
         const folder = await Folder.findOne({
             _id: folderId,
@@ -305,21 +306,83 @@ export const deleteFolder = async (
 
         const folderPath = folder.path;
 
-        await Folder.deleteMany({
-            accountId,
-            $or: [
-                { path: folderPath },
-                { path: { $regex: `^${folderPath}/` } },
-            ],
-        });
+        if (permament || folder.isDeleted) {
+            const files = await File.find({
+                accountId,
+                $or: [
+                    { folderPath },
+                    { folderPath: { $regex: `^${folderPath}/` } },
+                ],
+            });
 
-        await File.deleteMany({
-            accountId,
-            $or: [
-                { folderPath },
-                { folderPath: { $regex: `^${folderPath}/` } },
-            ],
-        });
+            // Delete files from disk
+            for (const file of files) {
+                const filePath = path.join(
+                    __dirname,
+                    "..",
+                    "..",
+                    "uploads",
+                    accountId || "",
+                    file.name
+                );
+
+                if (fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath);
+                }
+            }
+
+            await Folder.deleteMany({
+                accountId,
+                $or: [
+                    { path: folderPath },
+                    { path: { $regex: `^${folderPath}/` } },
+                ],
+            });
+
+            await File.deleteMany({
+                accountId,
+                $or: [
+                    { folderPath },
+                    { folderPath: { $regex: `^${folderPath}/` } },
+                ],
+            });
+        } else {
+            // Move folder to trash
+            const now = new Date();
+
+            // Mark the main folder as deleted
+            folder.isDeleted = true;
+            folder.deletedAt = now;
+            folder.originalPath = folder.path; // Store the original path
+            await folder.save();
+
+            const folders = await Folder.find({
+                accountId,
+                path: { $regex: `^${folderPath}/` },
+            });
+
+            for (const folder of folders) {
+                folder.isDeleted = true;
+                folder.deletedAt = now;
+                folder.originalPath = folder.path;
+                await folder.save();
+            }
+
+            const files = await File.find({
+                accountId,
+                $or: [
+                    { folderPath },
+                    { folderPath: { $regex: `^${folderPath}/` } },
+                ],
+            });
+
+            for (const file of files) {
+                file.isDeleted = true;
+                file.deletedAt = now;
+                file.originalPath = file.folderPath;
+                await file.save();
+            }
+        }
 
         res.status(200).json({
             success: true,

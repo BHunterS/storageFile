@@ -20,6 +20,9 @@ const fileSchema = new Schema<IFile>(
         extension: { type: String, maxlength: 10 },
         size: { type: Number },
         users: [{ type: Schema.Types.ObjectId, ref: "User" }],
+        isDeleted: { type: Boolean, default: false },
+        deletedAt: { type: Date },
+        originalPath: { type: String },
     },
     { timestamps: true }
 );

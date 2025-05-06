@@ -22,8 +22,8 @@ async function dropAll() {
         await File.deleteMany({});
         console.log("🗑️ All files deleted");
 
-        await User.deleteMany({});
-        console.log("🗑️ All users deleted");
+        // await User.deleteMany({});
+        // console.log("🗑️ All users deleted");
     } catch (error) {
         console.error("❌ Error while deleting:", error);
     } finally {

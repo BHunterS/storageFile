@@ -13,6 +13,7 @@ import userRoutes from "./routes/user.route";
 import fileRoutes from "./routes/file.route";
 import authRoutes from "./routes/auth.route";
 import folderRoutes from "./routes/folder.route";
+import trashRoutes from "./routes/trash.route";
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/files", fileRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/folders", folderRoutes);
+app.use("/api/trash", trashRoutes);
 
 // Error handling
 app.use(errorLogger);

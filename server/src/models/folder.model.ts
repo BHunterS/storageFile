@@ -12,6 +12,9 @@ const folderSchema = new Schema<IFolder>(
             required: true,
         },
         users: [{ type: Schema.Types.ObjectId, ref: "User" }],
+        isDeleted: { type: Boolean, default: false },
+        deletedAt: { type: Date },
+        originalPath: { type: String },
     },
     { timestamps: true }
 );

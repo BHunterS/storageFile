@@ -235,6 +235,7 @@ export const deleteFile = async (
     try {
         const accountId: accountId = req.userId;
         const { fileId } = req.params;
+        const { permanent = false } = req.query;
 
         if (!accountId) throw createError(401, "User not authorized!");
         if (!fileId) throw createError(400, "File name is required!");
@@ -242,20 +243,28 @@ export const deleteFile = async (
         const fileDoc = await File.findOne({ _id: fileId, accountId });
         if (!fileDoc) throw createError(404, "File not found!");
 
-        const filePath: string = path.join(
-            __dirname,
-            "..",
-            "..",
-            "uploads",
-            accountId.toString(),
-            fileDoc.name
-        );
+        if (permanent || fileDoc.isDeleted) {
+            const filePath: string = path.join(
+                __dirname,
+                "..",
+                "..",
+                "uploads",
+                accountId.toString(),
+                fileDoc.name
+            );
 
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+
+            await File.deleteOne({ _id: fileDoc._id });
+        } else {
+            fileDoc.isDeleted = true;
+            fileDoc.deletedAt = new Date();
+            fileDoc.originalPath = fileDoc.folderPath;
+
+            await fileDoc.save();
         }
-
-        await File.deleteOne({ _id: fileDoc._id });
 
         res.status(200).json({
             success: true,
