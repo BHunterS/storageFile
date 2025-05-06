@@ -103,6 +103,8 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
     const handleClick = (actionItem: ActionType): void => {
         const list = ["rename", "share", "delete", "details"];
 
+        console.log(actionItem);
+
         setAction(actionItem);
 
         if (list.includes(actionItem.value)) {
@@ -128,11 +130,13 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
                             onChange={(e) => setName(e.target.value)}
                         />
                     )}
-                    {value === "details" && isFile(item) ? (
-                        <FileDetails file={item as SFile} />
-                    ) : (
-                        <FolderDetails folder={item as Folder} />
-                    )}
+                    {value === "details" ? (
+                        isFile(item) ? (
+                            <FileDetails file={item as SFile} />
+                        ) : (
+                            <FolderDetails folder={item as Folder} />
+                        )
+                    ) : null}
                     {/*{value === "share" && (
                         <ShareInput
                             file={file}

@@ -15,7 +15,10 @@ const ItemCard = ({ item, leftContent, bottomContent }: Props) => {
             <div className="flex justify-between">
                 {leftContent}
 
-                <div className="flex flex-col items-end justify-between">
+                <div
+                    className="flex flex-col items-end justify-between"
+                    onClick={(event) => event.stopPropagation()}
+                >
                     <ActionDropdown item={item} />
                     {/* <p className="body-1">{convertFileSize(item.size)}</p> */}
                 </div>
