@@ -151,7 +151,7 @@ function App() {
                 />
                 <Header folderPath={currentFolder} accountId={user?._id} />
                 <ContextMenu>
-                    <ContextMenuTrigger>
+                    <ContextMenuTrigger className="max-h-full">
                         <div className="main-content">
                             <div className="page-container">
                                 <section className="w-full">

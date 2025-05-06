@@ -11,6 +11,8 @@ interface Props {
 const Sidebar = ({ name, avatar, email }: Props) => {
     const location = useLocation();
     const pathname = location.pathname;
+    const params = new URLSearchParams(location.search);
+    const types = params.get("types");
 
     return (
         <aside className="sidebar">
@@ -33,28 +35,35 @@ const Sidebar = ({ name, avatar, email }: Props) => {
 
             <nav className="sidebar-nav">
                 <ul className="flex flex-1 flex-col gap-6">
-                    {navItems.map(({ url, name, icon }) => (
-                        <Link key={name} to={url} className="lg:w-full">
-                            <li
-                                className={cn(
-                                    "sidebar-nav-item",
-                                    pathname === url && "shad-active"
-                                )}
-                            >
-                                <img
-                                    src={icon}
-                                    alt={name}
-                                    width={24}
-                                    height={24}
+                    {navItems.map(({ url, name, icon }) => {
+                        const itemParams = new URLSearchParams(
+                            url.split("?")[1]
+                        );
+                        const itemTypes = itemParams.get("types");
+                        const isActive = itemTypes === types;
+                        return (
+                            <Link key={name} to={url} className="lg:w-full">
+                                <li
                                     className={cn(
-                                        "nav-icon",
-                                        pathname === url && "nav-icon-active"
+                                        "sidebar-nav-item",
+                                        isActive && "shad-active"
                                     )}
-                                />
-                                <p className="hidden lg:block">{name}</p>
-                            </li>
-                        </Link>
-                    ))}
+                                >
+                                    <img
+                                        src={icon}
+                                        alt={name}
+                                        width={24}
+                                        height={24}
+                                        className={cn(
+                                            "nav-icon",
+                                            isActive && "nav-icon-active"
+                                        )}
+                                    />
+                                    <p className="hidden lg:block">{name}</p>
+                                </li>
+                            </Link>
+                        );
+                    })}
                 </ul>
             </nav>
 

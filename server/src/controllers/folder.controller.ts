@@ -116,11 +116,6 @@ export const getFolderContents = async (
         );
         const sortOptions: Record<string, 1 | -1> = buildSortOptions(sort);
 
-        const folders = await Folder.find({
-            accountId,
-            parentFolder: folderPath,
-        }).sort(sortOptions);
-
         const rawFiles = await File.find(filter)
             .sort(sortOptions)
             .populate<{ accountId: User }>({
@@ -136,6 +131,15 @@ export const getFolderContents = async (
                 ownerFullName: user.name,
             };
         });
+
+        let folders: any = [];
+
+        if (!types) {
+            folders = await Folder.find({
+                accountId,
+                parentFolder: folderPath,
+            }).sort(sortOptions);
+        }
 
         res.status(200).json({
             success: true,
@@ -181,8 +185,6 @@ export const getFolderDetails = async (
                 },
             },
         ]);
-
-        console.log(result);
 
         const totalSize = result[0]?.totalSize || 0;
         const fileCount = result[0]?.fileCount || 0;

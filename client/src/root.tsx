@@ -33,7 +33,7 @@ const Root = () => {
             <Router>
                 <Routes>
                     <Route
-                        path="/"
+                        path="/*"
                         element={
                             <ProtectedRoute>
                                 <App />
