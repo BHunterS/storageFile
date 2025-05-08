@@ -35,7 +35,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FileDetails, FolderDetails } from "@/components/ActionsModalContent";
 
-import { ActionType, Folder, SFile } from "@/types";
+import { ActionType, BaseResponse, Folder, SFile } from "@/types";
 
 const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -74,9 +74,8 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
     const handleAction = async () => {
         if (!action) return;
         setIsLoading(true);
-        let success = false;
+        let success: BaseResponse = { success: false, message: "" };
 
-        // TODO replace boolean with BaseResponse
         try {
             if (isFile(item)) {
                 success = await fileActions[

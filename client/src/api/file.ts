@@ -1,6 +1,8 @@
 import axios, { AxiosResponse } from "axios";
 
 import { SERVER_URL } from "@/constants";
+import { BaseResponse } from "@/types";
+import { BaseFileResponse } from "@/types/file";
 
 const axiosInstance = axios.create({
     baseURL: `${SERVER_URL}/api/files`,
@@ -9,38 +11,38 @@ const axiosInstance = axios.create({
     },
 });
 
-export const uploadFile = async (data: FormData): Promise<boolean> => {
+export const uploadFile = async (data: FormData): Promise<BaseResponse> => {
     const response = await axios.post(`${SERVER_URL}/api/files/upload`, data, {
         headers: { "Content-Type": "multipart/form-data" },
     });
 
-    return response.data.success;
+    return response.data;
 };
 
 export const renameFile = async (
     fileId: string,
     newName: string
-): Promise<boolean> => {
+): Promise<BaseFileResponse> => {
     try {
         const response: AxiosResponse = await axiosInstance.post(
             `/${fileId}/rename`,
             { newName }
         );
 
-        return response.data.success;
+        return response.data;
     } catch (error) {
         console.error("Error renaming file:", error);
         throw error;
     }
 };
 
-export const deleteFile = async (fileId: string): Promise<boolean> => {
+export const deleteFile = async (fileId: string): Promise<BaseResponse> => {
     try {
         const response: AxiosResponse = await axiosInstance.delete(
             `/${fileId}`
         );
 
-        return response.data.success;
+        return response.data;
     } catch (error) {
         console.error("Error renaming file:", error);
         throw error;
@@ -50,21 +52,23 @@ export const deleteFile = async (fileId: string): Promise<boolean> => {
 export const updateFileUsers = async (
     fileId: string,
     emails: string[]
-): Promise<boolean> => {
+): Promise<BaseFileResponse> => {
     try {
         const response = await axiosInstance.post(`/share`, {
             fileId,
             emails,
         });
 
-        return response.data.success;
+        return response.data;
     } catch (error) {
         console.error("Error renaming file:", error);
         throw error;
     }
 };
 
-export const restoreFile = async (fileId: string) => {
+export const restoreFile = async (
+    fileId: string
+): Promise<BaseFileResponse> => {
     try {
         const response: AxiosResponse = await axiosInstance.put(
             `/restore/${fileId}`
@@ -76,13 +80,15 @@ export const restoreFile = async (fileId: string) => {
     }
 };
 
-export const updateFileFavorite = async (fileId: string): Promise<boolean> => {
+export const updateFileFavorite = async (
+    fileId: string
+): Promise<BaseFileResponse> => {
     try {
         const response: AxiosResponse = await axiosInstance.put(
             `/favorite/${fileId}`
         );
 
-        return response.data.success;
+        return response.data;
     } catch (error) {
         console.error("Error updating file favorite:", error);
         throw error;

@@ -3,10 +3,11 @@ import axios, { AxiosResponse } from "axios";
 import { SERVER_URL } from "@/constants";
 
 import {
-    CreateFolderResponse,
+    BaseFolderResponse,
     GetFolderContentResponse,
     GetFolderDetailsResponse,
 } from "@/types/folder";
+import { BaseResponse } from "@/types";
 
 const axiosInstance = axios.create({
     baseURL: `${SERVER_URL}/api/folders`,
@@ -18,7 +19,7 @@ const axiosInstance = axios.create({
 export const createFolder = async (
     name: string,
     parentFolder: string = "/"
-): Promise<CreateFolderResponse> => {
+): Promise<BaseFolderResponse> => {
     console.log(name, parentFolder);
     const response: AxiosResponse = await axiosInstance.post("/", {
         name,
@@ -56,25 +57,27 @@ export const getFolderDetails = async (
 export const renameFolder = async (
     folderId: string,
     newName: string
-): Promise<boolean> => {
+): Promise<BaseFolderResponse> => {
     const response: AxiosResponse = await axiosInstance.put(
         `/${folderId}/rename`,
         { newName }
     );
 
-    return response.data.success;
+    return response.data;
 };
 
-export const deleteFolder = async (folderId: string): Promise<boolean> => {
+export const deleteFolder = async (folderId: string): Promise<BaseResponse> => {
     const response: AxiosResponse = await axiosInstance.delete(`/${folderId}`);
 
-    return response.data.success;
+    return response.data;
 };
 
-export const restoreFolder = async (folderId: string): Promise<boolean> => {
+export const restoreFolder = async (
+    folderId: string
+): Promise<BaseResponse> => {
     const response: AxiosResponse = await axiosInstance.put(
         `/restore/${folderId}`
     );
 
-    return response.data.success;
+    return response.data;
 };
