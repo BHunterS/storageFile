@@ -69,14 +69,6 @@ function App() {
     const handleCreateFolder = async (folderName: string) => {
         try {
             await createFolder(folderName, currentFolder);
-
-            const { folders } = await getFolderContent(
-                currentFolder,
-                type,
-                query,
-                sort
-            );
-            setFolders(folders);
             toggleTrigger();
         } catch (err) {
             console.error("Error creating folder:", err);
@@ -109,7 +101,6 @@ function App() {
 
                 const response = await getFolderContent(
                     currentFolder,
-                    type,
                     query,
                     sort
                 );

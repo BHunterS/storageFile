@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { navItems, navItemTypes } from "@/constants";
+import { navItems } from "@/constants";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -10,11 +10,6 @@ interface Props {
 
 const Sidebar = ({ name, avatar, email }: Props) => {
     const location = useLocation();
-
-    const combinedNavItems = [
-        ...navItems.map((item) => ({ ...item, type: "feature" })),
-        ...navItemTypes.map((item) => ({ ...item, type: "type" })),
-    ];
 
     return (
         <aside className="sidebar">
@@ -37,12 +32,17 @@ const Sidebar = ({ name, avatar, email }: Props) => {
 
             <nav className="sidebar-nav">
                 <ul className="flex flex-1 flex-col gap-6">
-                    {combinedNavItems.map(({ url, name, icon, type }) => {
-                        // TODO normalize isActive
+                    {navItems.map(({ url, name, icon }) => {
                         const isActive =
-                            type === "type"
-                                ? "/" + location.search === url
-                                : location.pathname === url && !location.search;
+                            url === "/"
+                                ? location.pathname === "/" ||
+                                  !navItems.some(
+                                      (item) =>
+                                          location.pathname.startsWith(
+                                              item.url
+                                          ) && item.url !== "/"
+                                  )
+                                : location.pathname.startsWith(url);
                         return (
                             <Link key={name} to={url} className="lg:w-full">
                                 <li

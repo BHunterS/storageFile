@@ -1,33 +1,30 @@
 export const SERVER_URL = "http://localhost:5000";
 
-export const navItemTypes = [
-    {
-        name: "Documents",
-        icon: "/assets/icons/documents.svg",
-        url: "/?types=document",
-    },
-    {
-        name: "Images",
-        icon: "/assets/icons/images.svg",
-        url: "/?types=image",
-    },
-    {
-        name: "Media",
-        icon: "/assets/icons/video.svg",
-        url: "/?types=video,audio",
-    },
-    {
-        name: "Others",
-        icon: "/assets/icons/others.svg",
-        url: "/?types=other",
-    },
-];
-
 export const navItems = [
     {
         name: "Dashboard",
         icon: "/assets/icons/dashboard.svg",
         url: "/",
+    },
+    {
+        name: "Documents",
+        icon: "/assets/icons/documents.svg",
+        url: "/documents",
+    },
+    {
+        name: "Images",
+        icon: "/assets/icons/images.svg",
+        url: "/images",
+    },
+    {
+        name: "Media",
+        icon: "/assets/icons/video.svg",
+        url: "/media",
+    },
+    {
+        name: "Others",
+        icon: "/assets/icons/others.svg",
+        url: "/other",
     },
     {
         name: "Trash",

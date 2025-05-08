@@ -25,17 +25,20 @@ export const buildFilter = (
     isDeleted: boolean,
     isFavorite: boolean,
     isFile: boolean,
-    query?: string,
-    types?: string[]
+    types: string[],
+    query?: string
 ) => {
     return {
         accountId,
         isDeleted,
-        ...(!isFavorite && {
-            [isFile ? "folderPath" : "parentFolder"]: folderPath,
-        }),
+        ...(!isFavorite &&
+            types.length === 0 && {
+                [isFile ? "folderPath" : "parentFolder"]: folderPath,
+            }),
         ...(query && { name: { $regex: query, $options: "i" } }),
-        ...(isFile && types && !isDeleted && { type: { $in: types } }),
+        ...(isFile &&
+            types.length !== 0 &&
+            !isDeleted && { type: { $in: types } }),
         ...(isFavorite && { isFavorite }),
     };
 };

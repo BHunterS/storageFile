@@ -115,17 +115,38 @@ export const getContents = async (
 ) => {
     try {
         const accountId: string = req.userId!;
-        const { encodedPath = "/", types, query, sort } = req.body;
+        const { encodedPath = "/", query, sort } = req.body;
         let folderPath = decodeURIComponent(encodedPath);
+
+        const mappings = {
+            "/documents": ["document"],
+            "/images": ["image"],
+            "/media": ["video", "audio"],
+            "/other": ["other"],
+        };
+
+        const types =
+            Object.entries(mappings).find(([prefix]) =>
+                folderPath.startsWith(prefix)
+            )?.[1] || [];
 
         const isTrash = folderPath.startsWith("/trash");
         const isFavorite = folderPath.startsWith("/favorite");
+        const isType = Object.keys(mappings).some((prefix) =>
+            folderPath.startsWith(prefix)
+        );
 
-        const actualFolderPath = isTrash
-            ? folderPath.replace(/^\/trash(\/|$)/, "/")
-            : isFavorite
-            ? folderPath.replace(/^\/favorite(\/|$)/, "/")
-            : folderPath;
+        let actualFolderPath = folderPath;
+        if (isTrash) {
+            actualFolderPath = folderPath.replace(/^\/trash(\/|$)/, "/");
+        } else if (isFavorite) {
+            actualFolderPath = folderPath.replace(/^\/favorite(\/|$)/, "/");
+        } else if (isType) {
+            actualFolderPath = folderPath.replace(
+                /^\/(documents|images|media|other)(\/|$)/,
+                "/"
+            );
+        }
 
         if (actualFolderPath !== "/") {
             const folderExists = await Folder.findOne({
@@ -149,8 +170,8 @@ export const getContents = async (
             isTrash,
             isFavorite,
             true,
-            query,
-            types
+            types,
+            query
         );
 
         // Determine sort options
@@ -182,13 +203,14 @@ export const getContents = async (
         let folders: any = [];
 
         // Get folders if not filtering by types
-        if ((!types && !isFavorite) || isTrash) {
+        if ((types.length === 0 && !isFavorite) || isTrash) {
             const folderFilter = buildFilter(
                 accountId,
                 actualFolderPath,
                 isTrash,
                 false,
                 false,
+                types,
                 query
             );
 
