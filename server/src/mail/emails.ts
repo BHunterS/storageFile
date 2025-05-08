@@ -1,5 +1,8 @@
 import nodemailer, { Transporter } from "nodemailer";
 import dotenv from "dotenv";
+
+import { createError } from "utils/createError";
+
 import {
     PASSWORD_RESET_REQUEST_TEMPLATE,
     PASSWORD_RESET_SUCCESS_TEMPLATE,
@@ -33,7 +36,7 @@ const transporter: Transporter = nodemailer.createTransport({
 export const sendVerificationEmail: EmailService["sendVerificationEmail"] =
     async (email, verificationToken) => {
         try {
-            const info = await transporter.sendMail({
+            await transporter.sendMail({
                 to: email,
                 subject: "Verify your email",
                 html: VERIFICATION_EMAIL_TEMPLATE.replace(
@@ -41,12 +44,8 @@ export const sendVerificationEmail: EmailService["sendVerificationEmail"] =
                     verificationToken
                 ),
             });
-            console.log("Verification email sent successfully", info);
-        } catch (error: any) {
-            console.error("Error sending verification email", error);
-            throw new Error(
-                `Error sending verification email: ${error.message}`
-            );
+        } catch {
+            throw createError(400, "Error sending verification email");
         }
     };
 
@@ -55,22 +54,20 @@ export const sendWelcomeEmail: EmailService["sendWelcomeEmail"] = async (
     name
 ) => {
     try {
-        const info = await transporter.sendMail({
+        await transporter.sendMail({
             to: email,
             subject: "Welcome to fileStorage",
             html: `<p>Hello ${name}, welcome to storageFile Company!</p>`,
         });
-        console.log("Welcome email sent successfully", info);
-    } catch (error: any) {
-        console.error("Error sending welcome email", error);
-        throw new Error(`Error sending welcome email: ${error.message}`);
+    } catch {
+        throw createError(400, "Error sending welcome email");
     }
 };
 
 export const sendPasswordResetEmail: EmailService["sendPasswordResetEmail"] =
     async (email, resetURL) => {
         try {
-            const info = await transporter.sendMail({
+            await transporter.sendMail({
                 to: email,
                 subject: "Reset your password",
                 html: PASSWORD_RESET_REQUEST_TEMPLATE.replace(
@@ -78,28 +75,23 @@ export const sendPasswordResetEmail: EmailService["sendPasswordResetEmail"] =
                     resetURL
                 ),
             });
-            console.log("Password reset email sent successfully", info);
-        } catch (error: any) {
-            console.error("Error sending password reset email", error);
-            throw new Error(
-                `Error sending password reset email: ${error.message}`
-            );
+        } catch {
+            throw createError(400, "Error sending password reset email");
         }
     };
 
 export const sendResetSuccessEmail: EmailService["sendResetSuccessEmail"] =
     async (email) => {
         try {
-            const info = await transporter.sendMail({
+            await transporter.sendMail({
                 to: email,
                 subject: "Password Reset Successful",
                 html: PASSWORD_RESET_SUCCESS_TEMPLATE,
             });
-            console.log("Password reset success email sent successfully", info);
         } catch (error: any) {
-            console.error("Error sending password reset success email", error);
-            throw new Error(
-                `Error sending password reset success email: ${error.message}`
+            throw createError(
+                400,
+                "Error sending password reset success email"
             );
         }
     };
