@@ -1,39 +1,48 @@
-export const buildFileFilter = (
-    accountId: string | undefined,
+import { createError } from "./createError";
+
+// export const buildFileFilter = (
+//     accountId: string | undefined,
+//     folderPath: string,
+//     types?: string[],
+//     name?: string
+// ) => {
+//     const filter: Record<string, any> = { accountId, folderPath };
+
+//     if (types?.length) {
+//         filter.type = { $in: types };
+//     }
+
+//     if (name) {
+//         filter.name = { $regex: name, $options: "i" };
+//     }
+
+//     return filter;
+// };
+
+export const buildFilter = (
+    accountId: string,
     folderPath: string,
-    types?: string[],
-    name?: string
+    isDeleted: boolean,
+    isFile: boolean,
+    query?: string,
+    types?: string[]
 ) => {
-    const filter: Record<string, any> = { accountId, folderPath };
-
-    if (types?.length) {
-        filter.type = { $in: types };
-    }
-
-    if (name) {
-        filter.name = { $regex: name, $options: "i" };
-    }
-
-    return filter;
+    return {
+        accountId,
+        isDeleted,
+        [isFile ? "folderPath" : "parentFolder"]: folderPath,
+        ...(query && { name: { $regex: query, $options: "i" } }),
+        ...(isFile && types && !isDeleted && { type: { $in: types } }),
+    };
 };
 
-export const buildSortOptions = (sort?: string): Record<string, 1 | -1> => {
-    const defaultSort: Record<string, 1 | -1> = { name: 1 };
-    console.log(sort);
-
-    if (!sort) return defaultSort;
-
+export const buildSortOptions = (sort: string): Record<string, 1 | -1> => {
     const [field, direction] = sort.split("-");
-    const validFields: string[] = ["name", "size", "createdAt", "deletedAt"];
-    const validDirections: string[] = ["asc", "desc"];
+    const validFields = ["name", "size", "createdAt", "deletedAt"];
+    const validDirections = ["asc", "desc"];
 
-    console.log(field, direction);
-
-    if (!validFields.includes(field) || !validDirections.includes(direction)) {
-        return defaultSort;
-    }
-
-    console.log({ [field]: direction === "asc" ? 1 : -1 });
+    if (!validFields.includes(field) || !validDirections.includes(direction))
+        throw createError(400, "Invalid sort parameters");
 
     return { [field]: direction === "asc" ? 1 : -1 };
 };
@@ -51,4 +60,14 @@ export const calculateDaysLeft = (deletedAt: Date | undefined): number => {
             (1000 * 60 * 60 * 24)
     );
     return Math.max(0, daysLeft);
+};
+
+export const getParentFolderFromPath = (path: string | undefined): string => {
+    if (path) {
+        const lastSlashIndex = path.lastIndexOf("/");
+        if (lastSlashIndex <= 0) return "/";
+        return path.substring(0, lastSlashIndex);
+    }
+
+    return "/";
 };

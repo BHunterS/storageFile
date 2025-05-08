@@ -262,6 +262,7 @@ export const deleteFile = async (
             fileDoc.isDeleted = true;
             fileDoc.deletedAt = new Date();
             fileDoc.originalPath = fileDoc.folderPath;
+            fileDoc.folderPath = "/";
 
             await fileDoc.save();
         }
@@ -269,6 +270,79 @@ export const deleteFile = async (
         res.status(200).json({
             success: true,
             message: "File deleted successfully!",
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Restore a file from trash
+export const restoreFile = async (
+    req: RequestWithUserId,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const { fileId } = req.params;
+        const accountId = req.userId;
+
+        const file = await File.findOne({
+            _id: fileId,
+            accountId,
+            isDeleted: true,
+        });
+
+        if (!file) throw createError(404, "File not found in trash!");
+
+        // Check if original path still exists
+        const originalPath = file.originalPath || file.folderPath;
+        let targetPath = originalPath;
+
+        // If the path is not root, check if the folder exists
+        if (
+            originalPath !== "/" &&
+            !(await Folder.findOne({
+                path: originalPath,
+                accountId,
+                isDeleted: false,
+            }))
+        ) {
+            // If original folder doesn't exist, move to root
+            targetPath = "/";
+        }
+
+        // Check for name conflicts in the target path
+        const baseName = file.name.replace(/\.\w+$/, "");
+        const extension = file.extension ? `.${file.extension}` : "";
+        let fileName = `${baseName}${extension}`;
+        let counter = 1;
+
+        while (
+            await File.findOne({
+                accountId,
+                folderPath: targetPath,
+                name: fileName,
+                isDeleted: false,
+            })
+        ) {
+            fileName = `${baseName} (${counter})${extension}`;
+            counter++;
+        }
+
+        // Update file
+        file.isDeleted = false;
+        file.deletedAt = undefined;
+        file.folderPath = targetPath;
+        file.name = fileName;
+        file.url = `${process.env.SERVER_URL}/api/files/${fileName}`;
+        file.originalPath = undefined;
+
+        await file.save();
+
+        res.status(200).json({
+            success: true,
+            message: "File successfully restored!",
+            file,
         });
     } catch (error) {
         next(error);

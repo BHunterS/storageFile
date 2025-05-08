@@ -1,4 +1,4 @@
-import { NextFunction, Response } from "express";
+import { NextFunction, raw, Response } from "express";
 import mongoose from "mongoose";
 import archiver from "archiver";
 import path from "path";
@@ -10,7 +10,28 @@ import File from "../models/file.model";
 import { createError } from "../utils/createError";
 
 import { RequestWithUserId, User } from "types";
-import { buildFileFilter, buildSortOptions } from "../utils/helpers";
+import {
+    buildFilter,
+    buildSortOptions,
+    getParentFolderFromPath,
+} from "../utils/helpers";
+
+async function getAllSubfolders(folderId: string) {
+    const folder = await Folder.findById(folderId);
+    if (!folder) throw createError(404, "Folder not found!");
+
+    const subfolders = await Folder.find({ parentFolder: folder.path });
+    const result = [folder];
+
+    for (const subfolder of subfolders) {
+        const subfolderChildren = await getAllSubfolders(
+            subfolder._id as string
+        );
+        result.push(...subfolderChildren);
+    }
+
+    return result;
+}
 
 export const createFolder = async (
     req: RequestWithUserId,
@@ -88,7 +109,7 @@ export const getFolders = async (
     }
 };
 
-export const getFolderContents = async (
+export const getContents = async (
     req: RequestWithUserId,
     res: Response,
     next: NextFunction
@@ -96,54 +117,87 @@ export const getFolderContents = async (
     try {
         const accountId = req.userId;
         const { encodedPath = "/", types, query, sort } = req.body;
-        const folderPath = decodeURIComponent(encodedPath);
+        let folderPath = decodeURIComponent(encodedPath);
 
-        if (folderPath !== "/") {
+        const isTrash = folderPath.startsWith("/trash");
+
+        const actualFolderPath = isTrash
+            ? folderPath.replace(/^\/trash(\/|$)/, "/")
+            : folderPath;
+
+        if (actualFolderPath !== "/") {
             const folderExists = await Folder.findOne({
-                path: folderPath,
+                path: actualFolderPath,
                 accountId,
+                isDeleted: isTrash,
             });
 
-            if (!folderExists)
-                throw createError(404, "Parent folder not found!");
+            if (!folderExists) {
+                const errorMessage = isTrash
+                    ? "Folder not found in trash!"
+                    : "Parent folder not found!";
+                throw createError(404, errorMessage);
+            }
         }
 
-        const filter: Record<string, any> = buildFileFilter(
-            accountId,
-            folderPath,
-            types,
-            query
+        // Build filter based on whether we're in trash view or normal view
+        const fileFilter = buildFilter(
+            accountId || "",
+            actualFolderPath,
+            isTrash,
+            true,
+            query,
+            types
         );
-        const sortOptions: Record<string, 1 | -1> = buildSortOptions(sort);
 
-        const rawFiles = await File.find(filter)
+        // Determine sort options
+        const defaultSort = isTrash ? "deletedAt-desc" : "name-asc";
+        const sortOptions: Record<string, any> = buildSortOptions(
+            sort || defaultSort
+        );
+
+        // Get files
+        const rawFiles = await File.find(fileFilter)
             .sort(sortOptions)
             .populate<{ accountId: User }>({
                 path: "accountId",
                 select: "name",
             });
 
+        // Process files
         const files = rawFiles.map((file) => {
             const user = file.accountId;
-            return {
+            const fileObj = {
                 ...file.toObject(),
                 accountId: user._id,
                 ownerFullName: user.name,
             };
+
+            return fileObj;
         });
 
         let folders: any = [];
 
-        if (!types) {
-            folders = await Folder.find({
-                accountId,
-                parentFolder: folderPath,
-            }).sort(sortOptions);
+        // Get folders if not filtering by types
+        if (!types || isTrash) {
+            const folderFilter = buildFilter(
+                accountId || "",
+                actualFolderPath,
+                isTrash,
+                false,
+                query
+            );
+
+            folders = await Folder.find(folderFilter).sort(sortOptions);
         }
+
+        const message = isTrash
+            ? "Trash contents retrieved successfully"
+            : "Files and folders are successfully found!";
 
         res.status(200).json({
             success: true,
-            message: "Files and folders are successfully found!",
+            message,
             folderPath,
             folders,
             files,
@@ -305,6 +359,7 @@ export const deleteFolder = async (
         if (!folder) throw createError(404, "Folder not found!");
 
         const folderPath = folder.path;
+        const parentFolder = folder.parentFolder;
 
         if (permament || folder.isDeleted) {
             const files = await File.find({
@@ -354,6 +409,8 @@ export const deleteFolder = async (
             folder.isDeleted = true;
             folder.deletedAt = now;
             folder.originalPath = folder.path; // Store the original path
+            folder.parentFolder = "/";
+            folder.path = `/${folder.name}`;
             await folder.save();
 
             const folders = await Folder.find({
@@ -361,11 +418,19 @@ export const deleteFolder = async (
                 path: { $regex: `^${folderPath}/` },
             });
 
-            for (const folder of folders) {
-                folder.isDeleted = true;
-                folder.deletedAt = now;
-                folder.originalPath = folder.path;
-                await folder.save();
+            for (const subfolder of folders) {
+                subfolder.isDeleted = true;
+                subfolder.deletedAt = now;
+                subfolder.originalPath = subfolder.path;
+
+                subfolder.path =
+                    parentFolder === "/"
+                        ? subfolder.path
+                        : subfolder.path.replace(parentFolder, "");
+                subfolder.parentFolder = getParentFolderFromPath(
+                    subfolder.path
+                );
+                await subfolder.save();
             }
 
             const files = await File.find({
@@ -380,6 +445,10 @@ export const deleteFolder = async (
                 file.isDeleted = true;
                 file.deletedAt = now;
                 file.originalPath = file.folderPath;
+                file.folderPath =
+                    parentFolder === "/"
+                        ? file.folderPath
+                        : file.folderPath.replace(parentFolder, "");
                 await file.save();
             }
         }
@@ -508,23 +577,6 @@ export const moveFolder = async (req: RequestWithUserId, res: Response) => {
     }
 };
 
-async function getAllSubfolders(folderId: string) {
-    const folder = await Folder.findById(folderId);
-    if (!folder) throw createError(404, "Folder not found!");
-
-    const subfolders = await Folder.find({ parentFolder: folder.path });
-    const result = [folder];
-
-    for (const subfolder of subfolders) {
-        const subfolderChildren = await getAllSubfolders(
-            subfolder._id as string
-        );
-        result.push(...subfolderChildren);
-    }
-
-    return result;
-}
-
 // TODO make accountId not undefined
 export const downloadFolderAsZip = async (
     req: RequestWithUserId,
@@ -611,6 +663,112 @@ export const downloadFolderAsZip = async (
                 });
             }, 1000);
         }
+    } catch (error) {
+        next(error);
+    }
+};
+
+// TODO fix naming when restored like new folder (1)
+// Restore a folder from trash
+export const restoreFolder = async (
+    req: RequestWithUserId,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const { folderId } = req.params;
+        const accountId = req.userId;
+
+        const folder = await Folder.findOne({
+            _id: folderId,
+            accountId,
+            isDeleted: true,
+        });
+
+        if (!folder) throw createError(404, "Folder not found in trash!");
+
+        // /folder1/folder2/folder3     /folder1/folder2        /folder3    /
+
+        // Check if original parent folder still exists
+        const originalParent = getParentFolderFromPath(folder.originalPath);
+        let targetParent = originalParent;
+
+        if (
+            originalParent !== "/" &&
+            !(await Folder.findOne({
+                path: originalParent,
+                accountId,
+                isDeleted: false,
+            }))
+        ) {
+            // If original parent doesn't exist, move to root
+            targetParent = "/";
+        }
+
+        // Check for name conflicts in the target parent
+        const baseName = folder.name;
+        let folderName = baseName;
+        let counter = 1;
+        let path = folder.originalPath || "/";
+
+        while (
+            await Folder.findOne({
+                accountId,
+                path,
+                isDeleted: false,
+            })
+        ) {
+            folderName = `${baseName} (${counter})`;
+            path =
+                targetParent === "/"
+                    ? `/${folderName}`
+                    : `${targetParent}/${folderName}`;
+            counter++;
+        }
+
+        const subfolders = await getAllSubfolders(folderId);
+        subfolders.shift();
+
+        // Update folder
+        const oldPath = folder.originalPath;
+        folder.isDeleted = false;
+        folder.deletedAt = undefined;
+        folder.parentFolder = targetParent;
+        folder.name = folderName;
+        folder.path = path;
+        folder.originalPath = undefined;
+
+        await folder.save();
+
+        const files = await File.find({
+            accountId,
+            isDeleted: true,
+            originalPath: { $regex: `^${oldPath}(/|$)` },
+        });
+
+        for (const file of files) {
+            file.isDeleted = false;
+            file.folderPath = file.originalPath || "/";
+            file.originalPath = undefined;
+            file.deletedAt = undefined;
+            await file.save();
+        }
+
+        // Restore all subfolders
+        for (const subfolder of subfolders) {
+            subfolder.isDeleted = false;
+            subfolder.deletedAt = undefined;
+            subfolder.path = subfolder.originalPath || "/";
+            subfolder.parentFolder = getParentFolderFromPath(subfolder.path);
+            subfolder.originalPath = undefined;
+
+            await subfolder.save();
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Folder successfully restored!",
+        });
     } catch (error) {
         next(error);
     }

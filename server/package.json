@@ -4,7 +4,8 @@
     "main": "src/server.ts",
     "scripts": {
         "dev": "nodemon --exec ts-node src/server.ts",
-        "drop": "ts-node src/db/drop.ts"
+        "drop": "ts-node src/db/drop.ts",
+        "restart": "npm run drop && npm run dev"
     },
     "keywords": [],
     "author": "",
