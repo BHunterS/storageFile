@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 
+import { useLoadingStore } from "@/store/loadingStore";
+
 import { getFolderDetails } from "@/api/folder";
 
 import { convertFileSize, formatDateTime } from "@/utils/helpers";
@@ -49,16 +51,16 @@ export const FileDetails = ({ file }: { file: SFile }) => {
 export const FolderDetails = ({ folder }: { folder: Folder }) => {
     const [folderDetails, setFolderDetails] =
         useState<GetFolderDetailsResponse | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
+    const { showLoading, hideLoading } = useLoadingStore();
 
     useEffect(() => {
         const fetchFolderDetails = async () => {
-            setLoading(true);
+            showLoading();
 
             const data = await getFolderDetails(folder._id);
             setFolderDetails(data);
 
-            setLoading(false);
+            hideLoading();
         };
 
         fetchFolderDetails();

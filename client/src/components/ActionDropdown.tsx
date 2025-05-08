@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useUploadStore } from "@/store/uploadStore";
+import { useLoadingStore } from "@/store/loadingStore";
 
 import {
     renameFile,
@@ -42,10 +43,10 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [action, setAction] = useState<ActionType | null>(null);
     const [name, setName] = useState(item.name);
-    const [isLoading, setIsLoading] = useState(false);
     const [emails, setEmails] = useState<string[]>([]);
 
     const { toggleTrigger } = useUploadStore();
+    const { showLoading, hideLoading } = useLoadingStore();
 
     const fileActions = {
         rename: (item: SFile) => renameFile(item._id, name),
@@ -73,7 +74,7 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
 
     const handleAction = async () => {
         if (!action) return;
-        setIsLoading(true);
+        showLoading();
         let success: BaseResponse = { success: false, message: "" };
 
         try {
@@ -94,7 +95,7 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
         } catch (error) {
             console.error("Action failed:", error);
         } finally {
-            setIsLoading(false);
+            hideLoading();
         }
     };
 
@@ -206,15 +207,6 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
                             className="modal-submit-button"
                         >
                             <p className="capitalize">{value}</p>
-                            {isLoading && (
-                                <img
-                                    src="/assets/icons/loader.svg"
-                                    alt="loader"
-                                    width={24}
-                                    height={24}
-                                    className="animate-spin"
-                                />
-                            )}
                         </Button>
                     </DialogFooter>
                 )}

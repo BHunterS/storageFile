@@ -28,8 +28,6 @@ const Root = () => {
 
     if (isCheckingAuth) return <LoadingSpinner />;
 
-    // TODO  APP path "/*"
-
     return (
         <StrictMode>
             <Router>

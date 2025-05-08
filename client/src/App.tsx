@@ -5,6 +5,7 @@ import { FolderPlus, Loader, Delete } from "lucide-react";
 
 import { useAuthStore } from "@/store/authStore";
 import { useUploadStore } from "@/store/uploadStore";
+import { useLoadingStore } from "@/store/loadingStore";
 
 import {
     getFolderContent,
@@ -37,13 +38,14 @@ import FolderBreadcrumb from "@/components/FolderBreadcrumb";
 import { Folder, SFile } from "@/types";
 
 function App() {
-    const { type, query, sort } = useQueryParams();
+    const { query, sort } = useQueryParams();
     const { user } = useAuthStore();
     const navigate = useNavigate();
     const location = useLocation();
 
+    const { loading, showLoading, hideLoading } = useLoadingStore();
+
     const [currentFolder, setCurrentFolder] = useState<string>("/");
-    const [loading, setLoading] = useState<boolean>(false);
     const [files, setFiles] = useState<SFile[]>([]);
     const [folders, setFolders] = useState<Folder[]>([]);
     const [selectedFolders, setSelectedFolders] = useState<string[]>([]);
@@ -97,7 +99,7 @@ function App() {
     useEffect(() => {
         const fetchFolderContents = async () => {
             try {
-                setLoading(true);
+                showLoading();
 
                 const response = await getFolderContent(
                     currentFolder,
@@ -110,12 +112,12 @@ function App() {
             } catch (err) {
                 console.error("Error fetching folder contents:", err);
             } finally {
-                setLoading(false);
+                hideLoading();
             }
         };
 
         fetchFolderContents();
-    }, [currentFolder, query, sort, type, trigger, location.pathname]);
+    }, [currentFolder, query, sort, trigger, location.pathname]);
 
     useEffect(() => {
         const folderPath = decodeURIComponent(location.pathname) || "/";
@@ -124,12 +126,12 @@ function App() {
 
     useEffect(() => {
         const fetchFolderDetails = async () => {
-            setLoading(true);
+            showLoading();
 
             const data = await getFolderDetails("root");
             setTotalRootSize(convertFileSize(data.details.totalSize));
 
-            setLoading(false);
+            hideLoading();
         };
 
         fetchFolderDetails();
@@ -155,8 +157,6 @@ function App() {
                                         currentFolder={currentFolder}
                                     />
 
-                                    <h1 className="h1 capitalize">{type}</h1>
-
                                     <div className="total-size-section">
                                         <p className="body-1">
                                             Total:{" "}
@@ -175,14 +175,11 @@ function App() {
                                     </div>
                                 </section>
 
-                                {
-                                    /* TODO global loader */
-                                    loading && (
-                                        <div className="absolute inset-0 bg-white bg-opacity-70 flex justify-center items-center z-10">
-                                            <Loader className="w-12 h-12 animate-spin text-blue-500" />
-                                        </div>
-                                    )
-                                }
+                                {loading && (
+                                    <div className="absolute inset-0 bg-white bg-opacity-70 flex justify-center items-center z-10">
+                                        <Loader className="w-12 h-12 animate-spin text-blue-500" />
+                                    </div>
+                                )}
 
                                 {folders.length > 0 || files.length > 0 ? (
                                     <section className="file-list">
