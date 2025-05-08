@@ -75,3 +75,16 @@ export const restoreFile = async (fileId: string) => {
         throw error;
     }
 };
+
+export const updateFileFavorite = async (fileId: string): Promise<boolean> => {
+    try {
+        const response: AxiosResponse = await axiosInstance.put(
+            `/favorite/${fileId}`
+        );
+
+        return response.data.success;
+    } catch (error) {
+        console.error("Error updating file favorite:", error);
+        throw error;
+    }
+};

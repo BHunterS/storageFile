@@ -6,6 +6,7 @@ import {
     renameFile,
     deleteFile,
     restoreFile,
+    updateFavorite,
 } from "../controllers/file.controller";
 
 import { verifyToken } from "../middlewares/verifyToken";
@@ -19,6 +20,7 @@ router.post("/:fileId/rename", renameFile);
 router.delete("/:fileId", deleteFile);
 // Restore file from trash
 router.put("/restore/:fileId", restoreFile);
+router.put("/favorite/:fileId", updateFavorite);
 // router.post("/share", shareFileWithUsers);
 
 export default router;

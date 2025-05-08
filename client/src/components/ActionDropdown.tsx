@@ -8,6 +8,7 @@ import {
     deleteFile,
     updateFileUsers,
     restoreFile,
+    updateFileFavorite,
 } from "@/api/file";
 import { deleteFolder, renameFolder, restoreFolder } from "@/api/folder";
 
@@ -51,6 +52,7 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
         share: (item: SFile) => updateFileUsers(item._id, emails),
         delete: (item: SFile) => deleteFile(item._id),
         restore: (item: SFile) => restoreFile(item._id),
+        favorite: (item: SFile) => updateFileFavorite(item._id),
     };
 
     const folderActions = {
@@ -110,7 +112,14 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
     // };
 
     const handleClick = (actionItem: ActionType): void => {
-        const list = ["rename", "share", "delete", "details", "restore"];
+        const list = [
+            "rename",
+            "share",
+            "delete",
+            "details",
+            "restore",
+            "favorite",
+        ];
 
         setAction(actionItem);
 
@@ -169,8 +178,23 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
                             ?
                         </p>
                     )}
+                    {isFile(item) && value === "favorite" && (
+                        <p className="delete-confirmation">
+                            Are you sure you want to{" "}
+                            {(item as SFile).isFavorite
+                                ? "remove from"
+                                : "add to"}{" "}
+                            favorites{" "}
+                            <span className="delete-file-name">
+                                {item.name}
+                            </span>
+                            ?
+                        </p>
+                    )}
                 </DialogHeader>
-                {["rename", "delete", "share", "restore"].includes(value) && (
+                {["rename", "delete", "share", "restore", "favorite"].includes(
+                    value
+                ) && (
                     <DialogFooter className="flex flex-col gap-3 md:flex-row">
                         <Button
                             onClick={closeAllModals}
@@ -223,8 +247,8 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
                             if (actionItem.value === "restore") {
                                 return item.isDeleted;
                             }
-                            if (actionItem.value === "delete") {
-                                return !item.isDeleted;
+                            if (actionItem.value === "favorite") {
+                                return isFile(item) && !item.isDeleted;
                             }
                             return true;
                         })

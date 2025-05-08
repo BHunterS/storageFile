@@ -23,6 +23,7 @@ export const buildFilter = (
     accountId: string,
     folderPath: string,
     isDeleted: boolean,
+    isFavorite: boolean,
     isFile: boolean,
     query?: string,
     types?: string[]
@@ -30,9 +31,12 @@ export const buildFilter = (
     return {
         accountId,
         isDeleted,
-        [isFile ? "folderPath" : "parentFolder"]: folderPath,
+        ...(!isFavorite && {
+            [isFile ? "folderPath" : "parentFolder"]: folderPath,
+        }),
         ...(query && { name: { $regex: query, $options: "i" } }),
         ...(isFile && types && !isDeleted && { type: { $in: types } }),
+        ...(isFavorite && { isFavorite }),
     };
 };
 

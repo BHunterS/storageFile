@@ -120,9 +120,12 @@ export const getContents = async (
         let folderPath = decodeURIComponent(encodedPath);
 
         const isTrash = folderPath.startsWith("/trash");
+        const isFavorite = folderPath.startsWith("/favorite");
 
         const actualFolderPath = isTrash
             ? folderPath.replace(/^\/trash(\/|$)/, "/")
+            : isFavorite
+            ? folderPath.replace(/^\/favorite(\/|$)/, "/")
             : folderPath;
 
         if (actualFolderPath !== "/") {
@@ -145,6 +148,7 @@ export const getContents = async (
             accountId || "",
             actualFolderPath,
             isTrash,
+            isFavorite,
             true,
             query,
             types
@@ -179,11 +183,12 @@ export const getContents = async (
         let folders: any = [];
 
         // Get folders if not filtering by types
-        if (!types || isTrash) {
+        if ((!types && !isFavorite) || isTrash) {
             const folderFilter = buildFilter(
                 accountId || "",
                 actualFolderPath,
                 isTrash,
+                false,
                 false,
                 query
             );
@@ -193,6 +198,8 @@ export const getContents = async (
 
         const message = isTrash
             ? "Trash contents retrieved successfully"
+            : isFavorite
+            ? "Favorite files are successfully found!"
             : "Files and folders are successfully found!";
 
         res.status(200).json({

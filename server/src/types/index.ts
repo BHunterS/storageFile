@@ -34,6 +34,7 @@ export interface IFile extends Document {
     originalPath?: string;
     createdAt: Date;
     updatedAt: Date;
+    isFavorite: boolean;
 }
 
 export interface IFolder extends Document {

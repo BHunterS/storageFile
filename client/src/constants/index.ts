@@ -72,6 +72,11 @@ export const actionsDropdownItems = [
         icon: "/assets/icons/restore.svg",
         value: "restore",
     },
+    {
+        label: "Favorite",
+        icon: "/assets/icons/favorite.svg",
+        value: "favorite",
+    },
 ];
 
 export const sortTypes = [

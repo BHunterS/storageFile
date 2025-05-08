@@ -23,6 +23,7 @@ const fileSchema = new Schema<IFile>(
         isDeleted: { type: Boolean, default: false },
         deletedAt: { type: Date },
         originalPath: { type: String },
+        isFavorite: { type: Boolean, default: false },
     },
     { timestamps: true }
 );

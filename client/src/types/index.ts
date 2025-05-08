@@ -19,7 +19,8 @@ export interface SFile {
     createdAt: string;
     updatedAt: string;
     deletedAt?: string;
-    isDeleted?: boolean;
+    isDeleted: boolean;
+    isFavorite?: boolean;
 }
 
 export interface Folder {
@@ -32,7 +33,7 @@ export interface Folder {
     createdAt: string;
     updatedAt: string;
     deletedAt?: string;
-    isDeleted?: boolean;
+    isDeleted: boolean;
 }
 
 export interface ActionType {

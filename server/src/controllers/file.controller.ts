@@ -349,6 +349,38 @@ export const restoreFile = async (
     }
 };
 
+export const updateFavorite = async (
+    req: RequestWithUserId,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const { fileId } = req.params;
+        const accountId = req.userId;
+        if (!accountId) throw createError(401, "User not authorized!");
+
+        const file = await File.findOne({
+            _id: fileId,
+            accountId,
+            isDeleted: false,
+        });
+        if (!file) throw createError(404, "File not found!");
+
+        file.isFavorite = !file.isFavorite;
+        await file.save();
+
+        res.status(200).json({
+            success: true,
+            message: `File ${
+                file.isFavorite ? "added to" : "removed from"
+            } favorites!`,
+            file,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // export const shareFileWithUsers = async (
 //     req: Request,
 //     res: Response,
