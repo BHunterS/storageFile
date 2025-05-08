@@ -63,3 +63,15 @@ export const updateFileUsers = async (
         throw error;
     }
 };
+
+export const restoreFile = async (fileId: string) => {
+    try {
+        const response: AxiosResponse = await axiosInstance.put(
+            `/restore/${fileId}`
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error restoring file:", error);
+        throw error;
+    }
+};

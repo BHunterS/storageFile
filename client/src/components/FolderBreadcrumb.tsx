@@ -1,3 +1,4 @@
+import React from "react";
 import { Link } from "react-router-dom";
 
 import {
@@ -24,9 +25,9 @@ const FolderBreadcrumb = ({ currentFolder }: { currentFolder: string }) => {
                     </BreadcrumbLink>
                 </BreadcrumbItem>
                 {parts.map((part, index) => (
-                    <>
-                        <BreadcrumbSeparator key={`sep-${index}`} />
-                        <BreadcrumbItem key={`item-${index}`}>
+                    <React.Fragment key={index}>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
                             {index === parts.length - 1 ? (
                                 <BreadcrumbPage>{part}</BreadcrumbPage>
                             ) : (
@@ -35,7 +36,7 @@ const FolderBreadcrumb = ({ currentFolder }: { currentFolder: string }) => {
                                 </BreadcrumbLink>
                             )}
                         </BreadcrumbItem>
-                    </>
+                    </React.Fragment>
                 ))}
             </BreadcrumbList>
         </Breadcrumb>

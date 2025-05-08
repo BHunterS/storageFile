@@ -3,8 +3,13 @@ import { Link } from "react-router-dom";
 
 import { useUploadStore } from "@/store/uploadStore";
 
-import { renameFile, deleteFile, updateFileUsers } from "@/api/file";
-import { deleteFolder, renameFolder } from "@/api/folder";
+import {
+    renameFile,
+    deleteFile,
+    updateFileUsers,
+    restoreFile,
+} from "@/api/file";
+import { deleteFolder, renameFolder, restoreFolder } from "@/api/folder";
 
 import { isFile } from "@/utils/helpers";
 
@@ -45,13 +50,15 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
         rename: (item: SFile) => renameFile(item._id, name),
         share: (item: SFile) => updateFileUsers(item._id, emails),
         delete: (item: SFile) => deleteFile(item._id),
+        restore: (item: SFile) => restoreFile(item._id),
     };
 
     const folderActions = {
         rename: (item: Folder) => renameFolder(item._id, name),
         // TODO share folder
-        share: (item: Folder) => item,
+        // share: (item: Folder) => item,
         delete: (item: Folder) => deleteFolder(item._id),
+        restore: (item: Folder) => restoreFolder(item._id),
     };
 
     const closeAllModals = () => {
@@ -67,6 +74,7 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
         setIsLoading(true);
         let success = false;
 
+        // TODO replace boolean with BaseResponse
         try {
             if (isFile(item)) {
                 success = await fileActions[
@@ -77,6 +85,7 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
                     action.value as keyof typeof folderActions
                 ](item as Folder);
             }
+
             if (success) {
                 closeAllModals();
                 toggleTrigger();
@@ -101,9 +110,7 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
     // };
 
     const handleClick = (actionItem: ActionType): void => {
-        const list = ["rename", "share", "delete", "details"];
-
-        console.log(actionItem);
+        const list = ["rename", "share", "delete", "details", "restore"];
 
         setAction(actionItem);
 
@@ -153,8 +160,17 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
                             ?
                         </p>
                     )}
+                    {value === "restore" && (
+                        <p className="delete-confirmation">
+                            Are you sure you want to restore{" "}
+                            <span className="delete-file-name">
+                                {item.name}
+                            </span>
+                            ?
+                        </p>
+                    )}
                 </DialogHeader>
-                {["rename", "delete", "share"].includes(value) && (
+                {["rename", "delete", "share", "restore"].includes(value) && (
                     <DialogFooter className="flex flex-col gap-3 md:flex-row">
                         <Button
                             onClick={closeAllModals}
@@ -202,46 +218,56 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
                         {item.name}
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    {actionsDropdownItems.map((actionItem) => (
-                        <DropdownMenuItem
-                            key={actionItem.value}
-                            className="shad-dropdown-item"
-                            onClick={() => {
-                                handleClick(actionItem);
-                            }}
-                        >
-                            {actionItem.value === "download" ? (
-                                <Link
-                                    to={`${
-                                        isFile(item)
-                                            ? (item as SFile).url +
-                                              "?download=true"
-                                            : `${SERVER_URL}/api/folders/${item._id}/download`
-                                    }`}
-                                    download={item.name}
-                                    className="flex items-center gap-2"
-                                >
-                                    <img
-                                        src={actionItem.icon}
-                                        alt={actionItem.label}
-                                        width={30}
-                                        height={30}
-                                    />
-                                    {actionItem.label}
-                                </Link>
-                            ) : (
-                                <div className="flex items-center gap-2">
-                                    <img
-                                        src={actionItem.icon}
-                                        alt={actionItem.label}
-                                        width={30}
-                                        height={30}
-                                    />
-                                    {actionItem.label}
-                                </div>
-                            )}
-                        </DropdownMenuItem>
-                    ))}
+                    {actionsDropdownItems
+                        .filter((actionItem) => {
+                            if (actionItem.value === "restore") {
+                                return item.isDeleted;
+                            }
+                            if (actionItem.value === "delete") {
+                                return !item.isDeleted;
+                            }
+                            return true;
+                        })
+                        .map((actionItem) => (
+                            <DropdownMenuItem
+                                key={actionItem.value}
+                                className="shad-dropdown-item"
+                                onClick={() => {
+                                    handleClick(actionItem);
+                                }}
+                            >
+                                {actionItem.value === "download" ? (
+                                    <Link
+                                        to={`${
+                                            isFile(item)
+                                                ? (item as SFile).url +
+                                                  "?download=true"
+                                                : `${SERVER_URL}/api/folders/${item._id}/download`
+                                        }`}
+                                        download={item.name}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <img
+                                            src={actionItem.icon}
+                                            alt={actionItem.label}
+                                            width={30}
+                                            height={30}
+                                        />
+                                        {actionItem.label}
+                                    </Link>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        <img
+                                            src={actionItem.icon}
+                                            alt={actionItem.label}
+                                            width={30}
+                                            height={30}
+                                        />
+                                        {actionItem.label}
+                                    </div>
+                                )}
+                            </DropdownMenuItem>
+                        ))}
                 </DropdownMenuContent>
             </DropdownMenu>
 

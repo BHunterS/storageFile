@@ -35,7 +35,6 @@ import FolderCard from "@/components/FolderCard";
 import FolderBreadcrumb from "@/components/FolderBreadcrumb";
 
 import { Folder, SFile } from "@/types";
-import { GetFolderContentResponse } from "./types/folder";
 
 function App() {
     const { type, query, sort } = useQueryParams();
@@ -107,10 +106,16 @@ function App() {
         const fetchFolderContents = async () => {
             try {
                 setLoading(true);
-                const { folders, files }: GetFolderContentResponse =
-                    await getFolderContent(currentFolder, type, query, sort);
-                setFolders(folders);
-                setFiles(files);
+
+                const response = await getFolderContent(
+                    currentFolder,
+                    type,
+                    query,
+                    sort
+                );
+
+                setFolders(response.folders);
+                setFiles(response.files);
             } catch (err) {
                 console.error("Error fetching folder contents:", err);
             } finally {
@@ -119,7 +124,7 @@ function App() {
         };
 
         fetchFolderContents();
-    }, [currentFolder, query, sort, type, trigger]);
+    }, [currentFolder, query, sort, type, trigger, location.pathname]);
 
     useEffect(() => {
         const folderPath = decodeURIComponent(location.pathname) || "/";
@@ -202,11 +207,15 @@ function App() {
                                                         folder._id
                                                     );
                                                 }}
-                                                onDoubleClick={() =>
+                                                onDoubleClick={() => {
+                                                    const path =
+                                                        folder.isDeleted
+                                                            ? `/trash${folder.path}`
+                                                            : folder.path;
                                                     handleFolderDoubleClick(
-                                                        folder.path
-                                                    )
-                                                }
+                                                        path
+                                                    );
+                                                }}
                                             />
                                         ))}
                                         {files.map((file: SFile) => (

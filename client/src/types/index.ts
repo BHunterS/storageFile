@@ -18,6 +18,8 @@ export interface SFile {
     ownerFullName: string;
     createdAt: string;
     updatedAt: string;
+    deletedAt?: string;
+    isDeleted?: boolean;
 }
 
 export interface Folder {
@@ -29,6 +31,8 @@ export interface Folder {
     users: string[];
     createdAt: string;
     updatedAt: string;
+    deletedAt?: string;
+    isDeleted?: boolean;
 }
 
 export interface ActionType {

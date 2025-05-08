@@ -1,11 +1,6 @@
 export const SERVER_URL = "http://localhost:5000";
 
-export const navItems = [
-    {
-        name: "Dashboard",
-        icon: "/assets/icons/dashboard.svg",
-        url: "/",
-    },
+export const navItemTypes = [
     {
         name: "Documents",
         icon: "/assets/icons/documents.svg",
@@ -25,6 +20,24 @@ export const navItems = [
         name: "Others",
         icon: "/assets/icons/others.svg",
         url: "/?types=other",
+    },
+];
+
+export const navItems = [
+    {
+        name: "Dashboard",
+        icon: "/assets/icons/dashboard.svg",
+        url: "/",
+    },
+    {
+        name: "Trash",
+        icon: "/assets/icons/video.svg",
+        url: "/trash",
+    },
+    {
+        name: "Favorite",
+        icon: "/assets/icons/video.svg",
+        url: "/favorite",
     },
 ];
 
@@ -53,6 +66,11 @@ export const actionsDropdownItems = [
         label: "Delete",
         icon: "/assets/icons/delete.svg",
         value: "delete",
+    },
+    {
+        label: "Restore",
+        icon: "/assets/icons/restore.svg",
+        value: "restore",
     },
 ];
 

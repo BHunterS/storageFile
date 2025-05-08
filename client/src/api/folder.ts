@@ -5,7 +5,6 @@ import { SERVER_URL } from "@/constants";
 import {
     CreateFolderResponse,
     GetFolderContentResponse,
-    RenameFolderReponse,
     GetFolderDetailsResponse,
 } from "@/types/folder";
 
@@ -57,17 +56,25 @@ export const getFolderDetails = async (
 export const renameFolder = async (
     folderId: string,
     newName: string
-): Promise<RenameFolderReponse> => {
+): Promise<boolean> => {
     const response: AxiosResponse = await axiosInstance.put(
         `/${folderId}/rename`,
         { newName }
     );
 
-    return response.data;
+    return response.data.success;
 };
 
-export const deleteFolder = async (folderId: string) => {
+export const deleteFolder = async (folderId: string): Promise<boolean> => {
     const response: AxiosResponse = await axiosInstance.delete(`/${folderId}`);
 
-    return response.data;
+    return response.data.success;
+};
+
+export const restoreFolder = async (folderId: string): Promise<boolean> => {
+    const response: AxiosResponse = await axiosInstance.put(
+        `/restore/${folderId}`
+    );
+
+    return response.data.success;
 };
