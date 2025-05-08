@@ -1,7 +1,7 @@
 import nodemailer, { Transporter } from "nodemailer";
 import dotenv from "dotenv";
 
-import { createError } from "utils/createError";
+import { createError } from "../utils/createError";
 
 import {
     PASSWORD_RESET_REQUEST_TEMPLATE,

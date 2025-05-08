@@ -265,6 +265,7 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
                                         to={`${
                                             isFile(item)
                                                 ? (item as SFile).url +
+                                                  (item as SFile)._id +
                                                   "?download=true"
                                                 : `${SERVER_URL}/api/folders/${item._id}/download`
                                         }`}

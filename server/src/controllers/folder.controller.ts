@@ -385,7 +385,7 @@ export const deleteFolder = async (
                     "..",
                     "uploads",
                     accountId,
-                    file.name
+                    file.storageName
                 );
 
                 if (fs.existsSync(filePath)) {
@@ -654,7 +654,7 @@ export const downloadFolderAsZip = async (
                         "..",
                         "uploads",
                         accountId,
-                        file.name
+                        file.storageName
                     );
 
                     archive.file(filePath, { name: fileRelativePath });

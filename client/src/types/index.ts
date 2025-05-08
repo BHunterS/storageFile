@@ -8,6 +8,7 @@ export interface BaseResponse {
 export interface SFile {
     _id: string;
     name: string;
+    storageName: string;
     url: string;
     type: FileType;
     extension: string;

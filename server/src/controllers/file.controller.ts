@@ -3,13 +3,20 @@ import path from "path";
 import fs from "fs";
 import mime from "mime-types";
 import { NextFunction, RequestHandler, Response, Request } from "express";
+import { v4 as uuidv4 } from "uuid";
 
 import File from "../models/file.model";
 import Folder from "../models/folder.model";
 
 import { createError } from "../utils/createError";
 
-import { fileType, renameFileRequest, User, RequestWithUserId } from "types";
+import {
+    fileType,
+    renameFileRequest,
+    User,
+    RequestWithUserId,
+    RequestWithStorageName,
+} from "types";
 
 const storage: StorageEngine = multer.diskStorage({
     destination: function (
@@ -28,26 +35,16 @@ const storage: StorageEngine = multer.diskStorage({
     },
 
     filename: function (
-        req: RequestWithUserId,
+        req: RequestWithStorageName,
         file: Express.Multer.File,
         cb: (error: Error | null, filename: string) => void
     ) {
-        const accountId: string = req.userId!;
+        const extension = path.extname(file.originalname);
+        const uniqueName = uuidv4() + extension;
 
-        const uploadDir: string = path.join("uploads", accountId);
+        req.storageName = uniqueName;
 
-        const originalName: string = file.originalname;
-        const extension: string = path.extname(originalName);
-        const baseName: string = path.basename(originalName, extension);
-        let finalName: string = originalName;
-        let counter: number = 0;
-
-        while (fs.existsSync(path.join(uploadDir, finalName))) {
-            counter++;
-            finalName = `${baseName} (${counter})${extension}`;
-        }
-
-        cb(null, finalName);
+        cb(null, uniqueName);
     },
 });
 
@@ -55,12 +52,13 @@ const upload: Multer = multer({ storage });
 
 export const uploadSingle: RequestHandler = upload.single("file");
 export const uploadFile = async (
-    req: RequestWithUserId,
+    req: RequestWithStorageName,
     res: Response,
     next: NextFunction
 ) => {
     try {
         const accountId = req.userId!;
+        const storageName = req.storageName!;
         const {
             type,
             folderPath = "/",
@@ -79,8 +77,9 @@ export const uploadFile = async (
         }
 
         const newFile = new File({
-            name: file.filename,
-            url: `${process.env.SERVER_URL}/api/files/${file.filename}`,
+            name: file.originalname,
+            storageName,
+            url: `${process.env.SERVER_URL}/api/files/`,
             type,
             folderPath,
             accountId,
@@ -100,7 +99,6 @@ export const uploadFile = async (
     }
 };
 
-// TODO replace name with fileId
 export const getFile = async (
     req: RequestWithUserId,
     res: Response,
@@ -108,12 +106,11 @@ export const getFile = async (
 ) => {
     try {
         const accountId: string = req.userId!;
-        const name: string = req.params.name;
+        const { fileId } = req.params;
         const download: boolean = req.query.download === "true";
 
-        if (!name) {
-            throw createError(400, "File name missing");
-        }
+        const file = await File.findOne({ _id: fileId, accountId });
+        if (!file) throw createError(404, "File not found!");
 
         const filePath: string = path.join(
             __dirname,
@@ -121,21 +118,18 @@ export const getFile = async (
             "..",
             "uploads",
             accountId,
-            name
+            file.storageName
         );
 
-        const fileDoc = await File.findOne({ name, accountId });
-        if (!fileDoc) throw createError(404, "File not found in database");
-
         if (!fs.existsSync(filePath))
-            throw createError(405, "File not found on disk");
+            throw createError(404, "File not found on disk");
 
         const mimeType: string =
             mime.lookup(filePath) || "application/octet-stream";
         res.setHeader("Content-Type", mimeType);
         res.setHeader(
             "Content-Disposition",
-            download ? `attachment; filename="${name}"` : "inline"
+            download ? `attachment; filename="${file.name}"` : "inline"
         );
         res.sendFile(filePath);
     } catch (error) {

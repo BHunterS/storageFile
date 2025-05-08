@@ -92,7 +92,6 @@ export const verifyEmail = async (
         user.verificationTokenExpiresAt = undefined;
         await user.save();
 
-        // TODO unpredictable errors
         await sendWelcomeEmail(user.email, user.name);
 
         res.status(200).json({

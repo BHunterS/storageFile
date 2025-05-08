@@ -5,6 +5,7 @@ import { IFile } from "types";
 const fileSchema = new Schema<IFile>(
     {
         name: { type: String, required: true, maxlength: 255 },
+        storageName: { type: String, required: true, maxlength: 255 },
         url: { type: String, required: true },
         type: {
             type: String,

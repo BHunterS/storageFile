@@ -7,14 +7,18 @@ import { SFile } from "@/types";
 
 const FileCard = ({ file }: { file: SFile }) => {
     return (
-        <Link to={file.url} target="_blank" className="file-card">
+        <Link
+            to={`${file.url}${file._id}`}
+            target="_blank"
+            className="file-card"
+        >
             <ItemCard
                 item={file}
                 leftContent={
                     <Thumbnail
                         type={file.type}
                         extension={file.extension}
-                        url={file.url}
+                        url={`${file.url}${file._id}`}
                         className="!size-20"
                         imageClassName="!size-11"
                     />

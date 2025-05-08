@@ -22,6 +22,7 @@ export interface User extends IUser {
 
 export interface IFile extends Document {
     name: string;
+    storageName: string;
     url: string;
     type: fileType;
     folderPath: string;
@@ -70,4 +71,9 @@ export interface deleteFileRequest {
 
 export interface RequestWithUserId extends Request {
     userId?: string;
+}
+
+export interface RequestWithStorageName extends Request {
+    userId?: string;
+    storageName?: string;
 }
