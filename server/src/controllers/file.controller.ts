@@ -2,7 +2,7 @@ import multer, { Multer, StorageEngine } from "multer";
 import path from "path";
 import fs from "fs";
 import mime from "mime-types";
-import { NextFunction, RequestHandler, Response, Request } from "express";
+import { NextFunction, RequestHandler, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
 import File from "../models/file.model";
@@ -248,7 +248,6 @@ export const deleteFile = async (
     }
 };
 
-// Restore a file from trash
 export const restoreFile = async (
     req: RequestWithUserId,
     res: Response,
@@ -362,7 +361,7 @@ export const updateFavorite = async (
 //         const { fileId, emails } = req.body;
 
 //         if (!fileId || !Array.isArray(emails) || emails.length === 0) {
-//             throw createError(400, "fileId and email// TODO change name to ids are required");
+//             throw createError(400, "fileId and email are required");
 //         }
 
 //         const file = await File.findOne({ _id: fileId, accountId });

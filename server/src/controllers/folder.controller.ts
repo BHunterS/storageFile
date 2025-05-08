@@ -1,5 +1,4 @@
 import { NextFunction, raw, Response } from "express";
-import mongoose from "mongoose";
 import archiver from "archiver";
 import path from "path";
 import fs from "fs";
@@ -283,20 +282,30 @@ export const renameFolder = async (
         const oldPath = folder.path;
         const parentFolder = folder.parentFolder;
 
-        const newPath =
-            parentFolder === "/" ? `/${newName}` : `${parentFolder}/${newName}`;
+        // Check for name conflicts in the target parent
+        const baseName = newName;
+        let folderName = baseName;
+        let counter = 1;
+        let newPath =
+            parentFolder === "/"
+                ? `/${folderName}`
+                : `${parentFolder}/${folderName}`;
 
-        const folderExists = await Folder.findOne({
-            path: newPath,
-            accountId,
-        });
-
-        // TODO should be Folder (1) and so on
-        if (folderExists && (folderExists._id as string) !== folderId) {
-            throw createError(400, "Folder with this name already exists!");
+        while (
+            await Folder.findOne({
+                accountId,
+                path: newPath,
+            })
+        ) {
+            folderName = `${baseName} (${counter})`;
+            newPath =
+                parentFolder === "/"
+                    ? `/${folderName}`
+                    : `${parentFolder}/${folderName}`;
+            counter++;
         }
 
-        folder.name = newName;
+        folder.name = folderName;
         folder.path = newPath;
         await folder.save();
 
@@ -304,8 +313,6 @@ export const renameFolder = async (
             accountId,
             path: { $regex: `^${oldPath}/` },
         });
-
-        console.log(allSubfolders);
 
         for (const subfolder of allSubfolders) {
             subfolder.path = subfolder.path.replace(oldPath, newPath);
@@ -600,6 +607,7 @@ export const downloadFolderAsZip = async (
         if (!mainFolder) throw createError(404, "Folder not found!");
 
         const allFolders = await getAllSubfolders(folderId);
+
         const archive = archiver("zip", {
             zlib: { level: 9 },
         });
@@ -674,7 +682,6 @@ export const downloadFolderAsZip = async (
     }
 };
 
-// TODO fix naming when restored like new folder (1)
 export const restoreFolder = async (
     req: RequestWithUserId,
     res: Response,
