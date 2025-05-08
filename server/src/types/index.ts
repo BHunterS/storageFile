@@ -50,7 +50,6 @@ export interface IFolder extends Document {
     updatedAt?: Date;
 }
 
-export type accountId = string | undefined;
 export type fileType = "document" | "image" | "video" | "audio" | "other";
 export type environmentVariable = string | undefined;
 

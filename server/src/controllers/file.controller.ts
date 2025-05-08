@@ -2,20 +2,14 @@ import multer, { Multer, StorageEngine } from "multer";
 import path from "path";
 import fs from "fs";
 import mime from "mime-types";
-import { NextFunction, RequestHandler, Response } from "express";
+import { NextFunction, RequestHandler, Response, Request } from "express";
 
 import File from "../models/file.model";
 import Folder from "../models/folder.model";
 
 import { createError } from "../utils/createError";
 
-import {
-    accountId,
-    fileType,
-    renameFileRequest,
-    User,
-    RequestWithUserId,
-} from "types";
+import { fileType, renameFileRequest, User, RequestWithUserId } from "types";
 
 const storage: StorageEngine = multer.diskStorage({
     destination: function (
@@ -23,16 +17,14 @@ const storage: StorageEngine = multer.diskStorage({
         file: Express.Multer.File,
         cb: (error: Error | null, destination: string) => void
     ) {
-        const accountId: accountId = req.userId;
-        if (accountId) {
-            const uploadDir: string = path.join("uploads", accountId);
+        const accountId: string = req.userId!;
+        const uploadDir: string = path.join("uploads", accountId);
 
-            if (!fs.existsSync(uploadDir)) {
-                fs.mkdirSync(uploadDir, { recursive: true });
-            }
-
-            cb(null, uploadDir);
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
         }
+
+        cb(null, uploadDir);
     },
 
     filename: function (
@@ -40,23 +32,22 @@ const storage: StorageEngine = multer.diskStorage({
         file: Express.Multer.File,
         cb: (error: Error | null, filename: string) => void
     ) {
-        const accountId: accountId = req.userId;
-        if (accountId) {
-            const uploadDir: string = path.join("uploads", accountId);
+        const accountId: string = req.userId!;
 
-            const originalName: string = file.originalname;
-            const extension: string = path.extname(originalName);
-            const baseName: string = path.basename(originalName, extension);
-            let finalName: string = originalName;
-            let counter: number = 0;
+        const uploadDir: string = path.join("uploads", accountId);
 
-            while (fs.existsSync(path.join(uploadDir, finalName))) {
-                counter++;
-                finalName = `${baseName} (${counter})${extension}`;
-            }
+        const originalName: string = file.originalname;
+        const extension: string = path.extname(originalName);
+        const baseName: string = path.basename(originalName, extension);
+        let finalName: string = originalName;
+        let counter: number = 0;
 
-            cb(null, finalName);
+        while (fs.existsSync(path.join(uploadDir, finalName))) {
+            counter++;
+            finalName = `${baseName} (${counter})${extension}`;
         }
+
+        cb(null, finalName);
     },
 });
 
@@ -69,6 +60,7 @@ export const uploadFile = async (
     next: NextFunction
 ) => {
     try {
+        const accountId = req.userId!;
         const {
             type,
             folderPath = "/",
@@ -76,9 +68,6 @@ export const uploadFile = async (
         const file: Express.Multer.File | undefined = req.file;
 
         if (!file) throw createError(400, "File not found!");
-
-        const accountId = req.userId;
-        if (!accountId) throw createError(401, "User is not authorized!");
 
         if (folderPath !== "/") {
             const folder = await Folder.findOne({
@@ -111,18 +100,16 @@ export const uploadFile = async (
     }
 };
 
+// TODO replace name with fileId
 export const getFile = async (
     req: RequestWithUserId,
     res: Response,
     next: NextFunction
 ) => {
     try {
-        const accountId: accountId = req.userId;
+        const accountId: string = req.userId!;
         const name: string = req.params.name;
         const download: boolean = req.query.download === "true";
-
-        if (!accountId)
-            throw createError(401, "Unauthorized - token not provided!");
 
         if (!name) {
             throw createError(400, "File name missing");
@@ -137,11 +124,8 @@ export const getFile = async (
             name
         );
 
-        const fileDoc = await File.findOne({ name });
+        const fileDoc = await File.findOne({ name, accountId });
         if (!fileDoc) throw createError(404, "File not found in database");
-
-        if (fileDoc.accountId.toString() !== accountId)
-            throw createError(403, "Access denied");
 
         if (!fs.existsSync(filePath))
             throw createError(405, "File not found on disk");
@@ -165,11 +149,10 @@ export const renameFile = async (
     next: NextFunction
 ) => {
     try {
-        const accountId: accountId = req.userId;
+        const accountId: string = req.userId!;
         const { fileId } = req.params;
         const { newName }: renameFileRequest = req.body;
 
-        if (!accountId) throw createError(401, "User is not authorized!");
         if (!fileId || !newName)
             throw createError(400, "Both fileId and newName are required!");
 
@@ -194,7 +177,7 @@ export const renameFile = async (
             "..",
             "..",
             "uploads",
-            accountId.toString()
+            accountId
         );
         let newPath: string = path.join(uploadsDir, finalName);
         let counter: number = 1;
@@ -211,11 +194,7 @@ export const renameFile = async (
 
         fileDoc.name = finalName;
         fileDoc.url = `${process.env.SERVER_URL}/api/files/${finalName}`;
-        fileDoc.folderPath = path.join(
-            "uploads",
-            accountId.toString(),
-            finalName
-        );
+        fileDoc.folderPath = path.join("uploads", accountId, finalName);
         await fileDoc.save();
 
         res.status(200).json({
@@ -233,11 +212,10 @@ export const deleteFile = async (
     next: NextFunction
 ) => {
     try {
-        const accountId: accountId = req.userId;
+        const accountId: string = req.userId!;
         const { fileId } = req.params;
         const { permanent = false } = req.query;
 
-        if (!accountId) throw createError(401, "User not authorized!");
         if (!fileId) throw createError(400, "File name is required!");
 
         const fileDoc = await File.findOne({ _id: fileId, accountId });
@@ -249,7 +227,7 @@ export const deleteFile = async (
                 "..",
                 "..",
                 "uploads",
-                accountId.toString(),
+                accountId,
                 fileDoc.name
             );
 
@@ -284,7 +262,7 @@ export const restoreFile = async (
 ) => {
     try {
         const { fileId } = req.params;
-        const accountId = req.userId;
+        const accountId: string = req.userId!;
 
         const file = await File.findOne({
             _id: fileId,
@@ -356,8 +334,7 @@ export const updateFavorite = async (
 ) => {
     try {
         const { fileId } = req.params;
-        const accountId = req.userId;
-        if (!accountId) throw createError(401, "User not authorized!");
+        const accountId: string = req.userId!;
 
         const file = await File.findOne({
             _id: fileId,

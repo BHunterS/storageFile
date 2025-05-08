@@ -40,7 +40,7 @@ export const createFolder = async (
 ) => {
     try {
         const { name, parentFolder = "/" } = req.body;
-        const accountId = req.userId;
+        const accountId: string = req.userId!;
 
         if (parentFolder !== "/") {
             const parentFolderExists = await Folder.findOne({
@@ -92,7 +92,7 @@ export const getFolders = async (
     next: NextFunction
 ) => {
     try {
-        const accountId = req.userId;
+        const accountId: string = req.userId!;
         const { parentFolder = "/" } = req.body;
 
         const folders = await Folder.find({
@@ -115,7 +115,7 @@ export const getContents = async (
     next: NextFunction
 ) => {
     try {
-        const accountId = req.userId;
+        const accountId: string = req.userId!;
         const { encodedPath = "/", types, query, sort } = req.body;
         let folderPath = decodeURIComponent(encodedPath);
 
@@ -145,7 +145,7 @@ export const getContents = async (
 
         // Build filter based on whether we're in trash view or normal view
         const fileFilter = buildFilter(
-            accountId || "",
+            accountId,
             actualFolderPath,
             isTrash,
             isFavorite,
@@ -185,7 +185,7 @@ export const getContents = async (
         // Get folders if not filtering by types
         if ((!types && !isFavorite) || isTrash) {
             const folderFilter = buildFilter(
-                accountId || "",
+                accountId,
                 actualFolderPath,
                 isTrash,
                 false,
@@ -221,10 +221,10 @@ export const getFolderDetails = async (
 ) => {
     try {
         const { folderId } = req.params;
-        const accountId = req.userId;
+        const accountId: string = req.userId!;
 
         const matchFilter: any = {
-            accountId: new mongoose.Types.ObjectId(accountId),
+            accountId,
         };
 
         if (folderId !== "root") {
@@ -271,7 +271,7 @@ export const renameFolder = async (
     try {
         const { folderId } = req.params;
         const { newName } = req.body;
-        const accountId = req.userId;
+        const accountId: string = req.userId!;
 
         const folder = await Folder.findOne({
             _id: folderId,
@@ -355,7 +355,7 @@ export const deleteFolder = async (
 ) => {
     try {
         const { folderId } = req.params;
-        const accountId = req.userId;
+        const accountId: string = req.userId!;
         const { permament = false } = req.query;
 
         const folder = await Folder.findOne({
@@ -384,7 +384,7 @@ export const deleteFolder = async (
                     "..",
                     "..",
                     "uploads",
-                    accountId || "",
+                    accountId,
                     file.name
                 );
 
@@ -473,7 +473,7 @@ export const moveFolder = async (req: RequestWithUserId, res: Response) => {
     try {
         const { folderId } = req.params;
         const { destinationFolder } = req.body;
-        const accountId = req.userId;
+        const accountId: string = req.userId!;
 
         const folder = await Folder.findOne({
             _id: folderId,
@@ -584,7 +584,6 @@ export const moveFolder = async (req: RequestWithUserId, res: Response) => {
     }
 };
 
-// TODO make accountId not undefined
 export const downloadFolderAsZip = async (
     req: RequestWithUserId,
     res: Response,
@@ -592,7 +591,7 @@ export const downloadFolderAsZip = async (
 ) => {
     try {
         const { folderId } = req.params;
-        const accountId = req.userId;
+        const accountId: string = req.userId!;
 
         const mainFolder = await Folder.findOne({
             _id: folderId,
@@ -654,7 +653,7 @@ export const downloadFolderAsZip = async (
                         "..",
                         "..",
                         "uploads",
-                        accountId || "",
+                        accountId,
                         file.name
                     );
 
@@ -676,7 +675,6 @@ export const downloadFolderAsZip = async (
 };
 
 // TODO fix naming when restored like new folder (1)
-// Restore a folder from trash
 export const restoreFolder = async (
     req: RequestWithUserId,
     res: Response,
@@ -684,7 +682,7 @@ export const restoreFolder = async (
 ) => {
     try {
         const { folderId } = req.params;
-        const accountId = req.userId;
+        const accountId: string = req.userId!;
 
         const folder = await Folder.findOne({
             _id: folderId,
@@ -693,8 +691,6 @@ export const restoreFolder = async (
         });
 
         if (!folder) throw createError(404, "Folder not found in trash!");
-
-        // /folder1/folder2/folder3     /folder1/folder2        /folder3    /
 
         // Check if original parent folder still exists
         const originalParent = getParentFolderFromPath(folder.originalPath);
