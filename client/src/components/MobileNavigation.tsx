@@ -1,11 +1,21 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
+import {
+    Home,
+    FileText,
+    Image,
+    Video,
+    Folder,
+    Trash2,
+    Heart,
+    Menu,
+    LogOut,
+} from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 import { useAuthStore } from "@/store/authStore";
-
-import { navItems } from "@/constants";
 
 import {
     Sheet,
@@ -17,6 +27,44 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 
 import FileUploader from "./FileUploader";
+
+const navItems = [
+    {
+        name: "Dashboard",
+        icon: <Home />,
+        url: "/",
+    },
+    {
+        name: "Documents",
+        icon: <FileText />,
+        url: "/documents",
+    },
+    {
+        name: "Images",
+        icon: <Image />,
+        url: "/images",
+    },
+    {
+        name: "Media",
+        icon: <Video />,
+        url: "/media",
+    },
+    {
+        name: "Others",
+        icon: <Folder />,
+        url: "/other",
+    },
+    {
+        name: "Trash",
+        icon: <Trash2 />,
+        url: "/trash",
+    },
+    {
+        name: "Favorite",
+        icon: <Heart />,
+        url: "/favorite",
+    },
+];
 
 interface Props {
     accountId?: string;
@@ -51,12 +99,7 @@ const MobileNavigation = ({
 
             <Sheet open={open} onOpenChange={setOpen}>
                 <SheetTrigger>
-                    <img
-                        src="/assets/icons/menu.svg"
-                        alt="Search"
-                        width={30}
-                        height={30}
-                    />
+                    <Menu size={30} aria-label="Burger menu" />
                 </SheetTrigger>
                 <SheetContent className="shad-sheet h-screen px-3">
                     <SheetTitle>
@@ -86,17 +129,7 @@ const MobileNavigation = ({
                                             pathname === url && "shad-active"
                                         )}
                                     >
-                                        <img
-                                            src={icon}
-                                            alt={name}
-                                            width={24}
-                                            height={24}
-                                            className={cn(
-                                                "nav-icon",
-                                                pathname === url &&
-                                                    "nav-icon-active"
-                                            )}
-                                        />
+                                        {icon}
                                         <p>{name}</p>
                                     </li>
                                 </Link>
@@ -116,11 +149,10 @@ const MobileNavigation = ({
                             className="mobile-sign-out-button"
                             onClick={async () => await logout()}
                         >
-                            <img
-                                src="/assets/icons/logout.svg"
-                                alt="logo"
-                                width={24}
-                                height={24}
+                            <LogOut
+                                size={24}
+                                className="w-6"
+                                aria-label="Logout"
                             />
                             <p>Logout</p>
                         </Button>

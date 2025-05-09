@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
+import { MoreVertical } from "lucide-react";
+
 import { useUploadStore } from "@/store/uploadStore";
 import { useLoadingStore } from "@/store/loadingStore";
 
@@ -221,12 +223,7 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
                 onOpenChange={setIsDropdownOpen}
             >
                 <DropdownMenuTrigger className="shad-no-focus">
-                    <img
-                        src="/assets/icons/dots.svg"
-                        alt="dots"
-                        width={34}
-                        height={34}
-                    />
+                    <MoreVertical size={34} aria-label="dots" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="min-w-[200px] max-w-[200px]">
                     <DropdownMenuLabel className="max-w-[200px] truncate">

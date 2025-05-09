@@ -7,6 +7,10 @@
         @apply scroll-smooth;
     }
 
+    html {
+        overflow: hidden;
+    }
+
     body {
         @apply bg-white text-dark-200 min-h-screen;
     }

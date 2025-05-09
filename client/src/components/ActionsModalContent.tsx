@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 
+import { X } from "lucide-react";
+
 import { useLoadingStore } from "@/store/loadingStore";
 
 import { getFolderDetails } from "@/api/folder";
@@ -64,7 +66,7 @@ export const FolderDetails = ({ folder }: { folder: Folder }) => {
         };
 
         fetchFolderDetails();
-    }, [folder._id]);
+    }, [folder._id, hideLoading, showLoading]);
 
     return (
         <>
@@ -134,12 +136,10 @@ export const ShareInput = ({ file, onInputChange, onRemove }: Props) => {
                                     onClick={() => onRemove(email)}
                                     className="share-remove-user"
                                 >
-                                    <img
-                                        src="/assets/icons/remove.svg"
-                                        alt="Remove"
-                                        width={24}
-                                        height={24}
+                                    <X
+                                        size={24}
                                         className="remove-icon"
+                                        aria-label="Remove"
                                     />
                                 </Button>
                             </li>

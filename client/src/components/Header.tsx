@@ -1,5 +1,7 @@
 import React from "react";
 
+import { LogOut } from "lucide-react";
+
 import { useAuthStore } from "@/store/authStore";
 
 import { Button } from "@/components/ui/button";
@@ -29,13 +31,7 @@ const Header: React.FC<HeaderProps> = ({ accountId, folderPath, files }) => {
                 <FileUploader folderPath={folderPath} accountId={accountId} />
                 <form onSubmit={handleLogout}>
                     <Button type="submit" className="sign-out-button">
-                        <img
-                            src="/assets/icons/logout.svg"
-                            alt="logout"
-                            width={24}
-                            height={24}
-                            className="w-6"
-                        />
+                        <LogOut size={24} className="w-6" aria-label="Logout" />
                     </Button>
                 </form>
             </div>

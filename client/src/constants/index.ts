@@ -1,43 +1,5 @@
 export const SERVER_URL = "http://localhost:5000";
 
-export const navItems = [
-    {
-        name: "Dashboard",
-        icon: "/assets/icons/dashboard.svg",
-        url: "/",
-    },
-    {
-        name: "Documents",
-        icon: "/assets/icons/documents.svg",
-        url: "/documents",
-    },
-    {
-        name: "Images",
-        icon: "/assets/icons/images.svg",
-        url: "/images",
-    },
-    {
-        name: "Media",
-        icon: "/assets/icons/video.svg",
-        url: "/media",
-    },
-    {
-        name: "Others",
-        icon: "/assets/icons/others.svg",
-        url: "/other",
-    },
-    {
-        name: "Trash",
-        icon: "/assets/icons/video.svg",
-        url: "/trash",
-    },
-    {
-        name: "Favorite",
-        icon: "/assets/icons/video.svg",
-        url: "/favorite",
-    },
-];
-
 export const actionsDropdownItems = [
     {
         label: "Rename",

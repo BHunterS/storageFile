@@ -1,6 +1,8 @@
 import React, { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
+import { X, Loader } from "lucide-react";
+
 import { useUploadStore } from "@/store/uploadStore";
 
 import { uploadFile } from "@/api/file";
@@ -93,7 +95,7 @@ const FileUploader = ({ accountId, className, folderPath }: Props) => {
     const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
     const handleRemoveFile = (
-        e: React.MouseEvent<HTMLImageElement, MouseEvent>,
+        e: React.MouseEvent<SVGSVGElement, MouseEvent>,
         fileName: string
     ) => {
         e.stopPropagation();
@@ -136,24 +138,21 @@ const FileUploader = ({ accountId, className, folderPath }: Props) => {
 
                                     <div className="preview-item-name">
                                         {file.name}
-                                        <img
-                                            src="/assets/icons/file-loader.gif"
-                                            width={80}
-                                            height={26}
-                                            alt="Loader"
+                                        <Loader
+                                            size={26}
+                                            className="animate-spin"
+                                            aria-label="Loading"
                                         />
                                     </div>
                                 </div>
 
-                                <img
-                                    src="/assets/icons/remove.svg"
-                                    width={24}
-                                    height={24}
-                                    alt="Remove"
+                                <X
+                                    size={24}
+                                    className="cursor-pointer"
+                                    aria-label="Remove"
                                     onClick={(e) =>
                                         handleRemoveFile(e, file.name)
                                     }
-                                    className="cursor-pointer"
                                 />
                             </li>
                         );

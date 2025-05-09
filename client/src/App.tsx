@@ -147,7 +147,7 @@ function App() {
 
     return (
         <main className="flex h-screen">
-            <Sidebar {...user} />
+            <Sidebar />
 
             <section className="flex h-full flex-1 flex-col">
                 <MobileNavigation
@@ -161,7 +161,7 @@ function App() {
                     files={files}
                 />
                 <ContextMenu>
-                    <ContextMenuTrigger className="max-h-full">
+                    <ContextMenuTrigger className="flex-1 pb-4 overflow-hidden">
                         <div className="main-content">
                             <div className="page-container">
                                 <section className="w-full">

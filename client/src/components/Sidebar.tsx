@@ -1,14 +1,56 @@
 import { Link, useLocation } from "react-router-dom";
-import { navItems } from "@/constants";
+
 import { cn } from "@/lib/utils";
 
-interface Props {
-    name?: string;
-    avatar?: string;
-    email?: string;
-}
+import {
+    Home,
+    FileText,
+    Image,
+    Video,
+    Folder,
+    Trash2,
+    Heart,
+} from "lucide-react";
 
-const Sidebar = ({ name, avatar, email }: Props) => {
+const navItems = [
+    {
+        name: "Dashboard",
+        icon: <Home />,
+        url: "/",
+    },
+    {
+        name: "Documents",
+        icon: <FileText />,
+        url: "/documents",
+    },
+    {
+        name: "Images",
+        icon: <Image />,
+        url: "/images",
+    },
+    {
+        name: "Media",
+        icon: <Video />,
+        url: "/media",
+    },
+    {
+        name: "Others",
+        icon: <Folder />,
+        url: "/other",
+    },
+    {
+        name: "Trash",
+        icon: <Trash2 />,
+        url: "/trash",
+    },
+    {
+        name: "Favorite",
+        icon: <Heart />,
+        url: "/favorite",
+    },
+];
+
+const Sidebar = () => {
     const location = useLocation();
 
     return (
@@ -51,16 +93,7 @@ const Sidebar = ({ name, avatar, email }: Props) => {
                                         isActive && "shad-active"
                                     )}
                                 >
-                                    <img
-                                        src={icon}
-                                        alt={name}
-                                        width={24}
-                                        height={24}
-                                        className={cn(
-                                            "nav-icon",
-                                            isActive && "nav-icon-active"
-                                        )}
-                                    />
+                                    {icon}
                                     <p className="hidden lg:block">{name}</p>
                                 </li>
                             </Link>
@@ -68,28 +101,6 @@ const Sidebar = ({ name, avatar, email }: Props) => {
                     })}
                 </ul>
             </nav>
-
-            <img
-                src="/assets/images/files-2.png"
-                alt="decorative"
-                width={506}
-                height={418}
-                className="w-full"
-            />
-
-            <div className="sidebar-user-info">
-                <img
-                    src={avatar}
-                    alt="Avatar"
-                    width={44}
-                    height={44}
-                    className="sidebar-user-avatar"
-                />
-                <div className="hidden lg:block">
-                    <p className="subtitle-2 capitalize">{name}</p>
-                    <p className="caption">{email}</p>
-                </div>
-            </div>
         </aside>
     );
 };

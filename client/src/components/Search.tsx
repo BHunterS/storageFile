@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { Search as SearchIcon } from "lucide-react";
+
 import { useDebounce } from "@/hooks/useDebounce";
 
 import { SERVER_URL } from "@/constants";
@@ -43,12 +45,7 @@ const Search = ({ files }: { files: SFile[] }) => {
     return (
         <div className="search">
             <div className="search-input-wrapper">
-                <img
-                    src="/assets/icons/search.svg"
-                    alt="Search"
-                    width={24}
-                    height={24}
-                />
+                <SearchIcon size={24} aria-label="Search" />
                 <Input
                     value={query}
                     placeholder="Search..."
