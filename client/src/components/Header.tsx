@@ -6,12 +6,15 @@ import { Button } from "@/components/ui/button";
 import Search from "@/components/Search";
 import FileUploader from "@/components/FileUploader";
 
+import { SFile } from "@/types";
+
 interface HeaderProps {
     accountId: string | undefined;
     folderPath: string;
+    files: SFile[];
 }
 
-const Header: React.FC<HeaderProps> = ({ accountId, folderPath }) => {
+const Header: React.FC<HeaderProps> = ({ accountId, folderPath, files }) => {
     const { logout } = useAuthStore();
 
     const handleLogout = async (e: React.FormEvent) => {
@@ -21,7 +24,7 @@ const Header: React.FC<HeaderProps> = ({ accountId, folderPath }) => {
 
     return (
         <header className="header">
-            <Search />
+            <Search files={files} />
             <div className="header-wrapper">
                 <FileUploader folderPath={folderPath} accountId={accountId} />
                 <form onSubmit={handleLogout}>

@@ -117,7 +117,15 @@ function App() {
         };
 
         fetchFolderContents();
-    }, [currentFolder, query, sort, trigger, location.pathname]);
+    }, [
+        currentFolder,
+        query,
+        sort,
+        trigger,
+        location.pathname,
+        showLoading,
+        hideLoading,
+    ]);
 
     useEffect(() => {
         const folderPath = decodeURIComponent(location.pathname) || "/";
@@ -135,7 +143,7 @@ function App() {
         };
 
         fetchFolderDetails();
-    }, [trigger]);
+    }, [hideLoading, showLoading, trigger]);
 
     return (
         <main className="flex h-screen">
@@ -147,7 +155,11 @@ function App() {
                     accountId={user?._id}
                     {...user}
                 />
-                <Header folderPath={currentFolder} accountId={user?._id} />
+                <Header
+                    folderPath={currentFolder}
+                    accountId={user?._id}
+                    files={files}
+                />
                 <ContextMenu>
                     <ContextMenuTrigger className="max-h-full">
                         <div className="main-content">
