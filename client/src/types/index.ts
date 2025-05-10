@@ -37,6 +37,16 @@ export interface Folder {
     isDeleted: boolean;
 }
 
+export interface User {
+    _id: string;
+    name: string;
+    email: string;
+    avatar: string;
+    lastLogin: string;
+    isVerified: boolean;
+    createdAt: string;
+}
+
 export interface ActionType {
     label: string;
     icon: string;

@@ -1,39 +1,30 @@
 import React from "react";
 
-import { LogOut } from "lucide-react";
-
-import { useAuthStore } from "@/store/authStore";
-
-import { Button } from "@/components/ui/button";
 import Search from "@/components/Search";
 import FileUploader from "@/components/FileUploader";
+import UserMenu from "@/components/UserMenu";
 
-import { SFile } from "@/types";
+import { SFile, User } from "@/types";
 
 interface HeaderProps {
     accountId: string | undefined;
     folderPath: string;
     files: SFile[];
+    user: User | null;
 }
 
-const Header: React.FC<HeaderProps> = ({ accountId, folderPath, files }) => {
-    const { logout } = useAuthStore();
-
-    const handleLogout = async (e: React.FormEvent) => {
-        e.preventDefault();
-        await logout();
-    };
-
+const Header: React.FC<HeaderProps> = ({
+    accountId,
+    folderPath,
+    files,
+    user,
+}) => {
     return (
         <header className="header">
             <Search files={files} />
             <div className="header-wrapper">
                 <FileUploader folderPath={folderPath} accountId={accountId} />
-                <form onSubmit={handleLogout}>
-                    <Button type="submit" className="sign-out-button">
-                        <LogOut size={24} className="w-6" aria-label="Logout" />
-                    </Button>
-                </form>
+                <UserMenu {...user} />
             </div>
         </header>
     );

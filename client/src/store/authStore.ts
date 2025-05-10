@@ -1,22 +1,14 @@
 import { create } from "zustand";
 import axios from "axios";
 
+import { User } from "@/types";
+
 const API_URL =
     import.meta.env.MODE === "development"
         ? "http://localhost:5000/api/auth"
         : "/api/auth";
 
 axios.defaults.withCredentials = true;
-
-interface User {
-    _id: string;
-    name: string;
-    email: string;
-    avatar: string;
-    lastLogin: string;
-    isVerified: boolean;
-    createdAt: string;
-}
 
 interface AuthState {
     user: User | null;

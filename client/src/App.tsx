@@ -159,6 +159,7 @@ function App() {
                     folderPath={currentFolder}
                     accountId={user?._id}
                     files={files}
+                    user={user}
                 />
                 <ContextMenu>
                     <ContextMenuTrigger className="flex-1 pb-4 overflow-hidden">
