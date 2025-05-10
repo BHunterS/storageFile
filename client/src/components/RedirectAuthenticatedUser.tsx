@@ -9,7 +9,7 @@ interface RedirectAuthenticatedUserProps {
 const RedirectAuthenticatedUser: React.FC<RedirectAuthenticatedUserProps> = ({
     children,
 }) => {
-    const { isAuthenticated, user } = useAuthStore();
+    const { isAuthenticated } = useAuthStore();
 
     if (isAuthenticated) {
         return <Navigate to="/" replace />;

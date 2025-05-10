@@ -39,9 +39,7 @@ const Root = () => {
                                 <App />
                             </ProtectedRoute>
                         }
-                    >
-                        <Route path="*" element={<></>} />
-                    </Route>
+                    ></Route>
                     <Route element={<AuthLayout />}>
                         <Route
                             path="/login"
