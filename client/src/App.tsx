@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import { FolderPlus, Loader, Delete } from "lucide-react";
 
+import { AxiosError } from "axios";
+
 import { useAuthStore } from "@/store/authStore";
 import { useUploadStore } from "@/store/uploadStore";
 import { useLoadingStore } from "@/store/loadingStore";
@@ -34,6 +36,7 @@ import Sort from "@/components/Sort";
 import FileCard from "@/components/FileCard";
 import FolderCard from "@/components/FolderCard";
 import FolderBreadcrumb from "@/components/FolderBreadcrumb";
+import Footer from "@/components/Footer";
 
 import { Folder, SFile } from "@/types";
 
@@ -110,7 +113,12 @@ function App() {
                 setFolders(response.folders);
                 setFiles(response.files);
             } catch (err) {
-                console.error("Error fetching folder contents:", err);
+                const error = err as AxiosError;
+
+                if (error.response && error.response.status === 404) {
+                    setFolders([]);
+                    setFiles([]);
+                }
             } finally {
                 hideLoading();
             }
@@ -257,6 +265,7 @@ function App() {
                         )}
                     </ContextMenuContent>
                 </ContextMenu>
+                <Footer />
             </section>
         </main>
     );
