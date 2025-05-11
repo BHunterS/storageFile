@@ -8,6 +8,7 @@ import SignUpPage from "./pages/SignUpPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import ProfilePage from "./pages/ProfilePage";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import RedirectAuthenticatedUser from "./components/RedirectAuthenticatedUser";
@@ -39,7 +40,16 @@ const Root = () => {
                                 <App />
                             </ProtectedRoute>
                         }
-                    ></Route>
+                    />
+
+                    <Route
+                        path="/profile"
+                        element={
+                            <ProtectedRoute>
+                                <ProfilePage />
+                            </ProtectedRoute>
+                        }
+                    />
                     <Route element={<AuthLayout />}>
                         <Route
                             path="/login"

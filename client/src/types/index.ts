@@ -47,6 +47,14 @@ export interface User {
     createdAt: string;
 }
 
+export interface Profile {
+    accountId: string;
+    bio?: string;
+    location?: string;
+    phone?: string;
+    birthdate?: string;
+}
+
 export interface ActionType {
     label: string;
     icon: string;
