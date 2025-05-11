@@ -27,6 +27,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 
 import FileUploader from "./FileUploader";
+import { User } from "@/types";
 
 const navItems = [
     {
@@ -67,20 +68,11 @@ const navItems = [
 ];
 
 interface Props {
-    accountId?: string;
-    name?: string;
-    avatar?: string;
-    email?: string;
+    user: User | null;
     folderPath: string;
 }
 
-const MobileNavigation = ({
-    accountId,
-    name,
-    avatar,
-    email,
-    folderPath,
-}: Props) => {
+const MobileNavigation = ({ folderPath, user }: Props) => {
     const [open, setOpen] = useState(false);
     const location = useLocation();
     const pathname = location.pathname;
@@ -105,15 +97,17 @@ const MobileNavigation = ({
                     <SheetTitle>
                         <div className="header-user">
                             <img
-                                src={avatar}
+                                src={user?.avatar}
                                 alt="avatar"
                                 width={44}
                                 height={44}
                                 className="header-user-avatar"
                             />
                             <div className="sm:hidden lg:block">
-                                <p className="subtitle-2 capitalize">{name}</p>
-                                <p className="caption">{email}</p>
+                                <p className="subtitle-2 capitalize">
+                                    {user?.name}
+                                </p>
+                                <p className="caption">{user?.email}</p>
                             </div>
                         </div>
                         <Separator className="mb-4 bg-light-200/20" />
@@ -142,7 +136,7 @@ const MobileNavigation = ({
                     <div className="flex flex-col justify-between gap-5 pb-5">
                         <FileUploader
                             folderPath={folderPath}
-                            accountId={accountId}
+                            accountId={user?._id}
                         />
                         <Button
                             type="submit"

@@ -141,7 +141,7 @@ const ProfilePage: React.FC = () => {
     }
 
     return (
-        <div className="container mx-auto my-8 p-4">
+        <div className="my-8 p-4">
             <Tabs defaultValue="view" className="w-full">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
                     <div className="flex items-center gap-4 mb-4 sm:mb-0">

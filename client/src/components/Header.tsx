@@ -7,23 +7,22 @@ import UserMenu from "@/components/UserMenu";
 import { SFile, User } from "@/types";
 
 interface HeaderProps {
-    accountId: string | undefined;
     folderPath: string;
     files: SFile[];
     user: User | null;
 }
 
-const Header: React.FC<HeaderProps> = ({
-    accountId,
-    folderPath,
-    files,
-    user,
-}) => {
+const Header: React.FC<HeaderProps> = ({ folderPath, files, user }) => {
     return (
         <header className="header">
             <Search files={files} />
             <div className="header-wrapper">
-                <FileUploader folderPath={folderPath} accountId={accountId} />
+                {folderPath && (
+                    <FileUploader
+                        folderPath={folderPath}
+                        accountId={user?._id}
+                    />
+                )}
                 <UserMenu {...user} />
             </div>
         </header>

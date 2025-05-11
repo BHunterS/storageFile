@@ -14,6 +14,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import RedirectAuthenticatedUser from "./components/RedirectAuthenticatedUser";
 
 import AuthLayout from "./components/layouts/AuthLayout";
+import MainLayout from "./components/layouts/MainLayout";
 
 import LoadingSpinner from "./components/auth/LoadingSpinner";
 
@@ -37,7 +38,9 @@ const Root = () => {
                         path="/*"
                         element={
                             <ProtectedRoute>
-                                <App />
+                                <MainLayout>
+                                    <App />
+                                </MainLayout>
                             </ProtectedRoute>
                         }
                     />
@@ -46,7 +49,9 @@ const Root = () => {
                         path="/profile"
                         element={
                             <ProtectedRoute>
-                                <ProfilePage />
+                                <MainLayout>
+                                    <ProfilePage />
+                                </MainLayout>
                             </ProtectedRoute>
                         }
                     />
