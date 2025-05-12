@@ -1,13 +1,15 @@
 import mongoose, { Schema, Model } from "mongoose";
 
-import { IUser } from "types";
+import { defaultAvatar } from "../constants";
+
+import { IUser } from "../types";
 
 const userSchema = new Schema<IUser>(
     {
         email: { type: String, required: true, unique: true },
         name: { type: String, required: true, maxlength: 255 },
         password: { type: String, required: true },
-        avatar: { type: String },
+        avatar: { type: String, default: defaultAvatar },
         lastLogin: { type: Date, default: Date.now },
         isVerified: { type: Boolean, default: false },
         resetPasswordToken: String,
