@@ -1,6 +1,7 @@
 import { Request } from "express";
 import { Types, Document } from "mongoose";
 
+// TODO delete unnecessary interfaces and do some refactoring
 export interface IUser extends Document {
     email: string;
     name: string;
@@ -16,6 +17,7 @@ export interface IUser extends Document {
     updatedAt: Date;
 }
 
+// TODO delete this
 export interface User extends IUser {
     _id: Types.ObjectId;
 }
@@ -49,6 +51,32 @@ export interface IFolder extends Document {
     originalPath?: string;
     createdAt?: Date;
     updatedAt?: Date;
+}
+
+export interface IProfile {
+    accountId: Types.ObjectId;
+    bio?: string;
+    location?: string;
+    phone?: string;
+    birthday?: Date;
+}
+
+export interface IRSAkeys {
+    publicKey: string;
+    privateKey: string;
+    accountId: Types.ObjectId;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface GetProfileBody {
+    avatar: string;
+    name: string;
+    email: string;
+    bio?: string;
+    location?: string;
+    phone?: string;
+    birthday?: Date;
 }
 
 export type fileType = "document" | "image" | "video" | "audio" | "other";
