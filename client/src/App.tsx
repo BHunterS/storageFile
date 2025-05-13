@@ -3,8 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import { FolderPlus, Loader, Delete } from "lucide-react";
 
-import { AxiosError } from "axios";
-
 import { useUploadStore } from "@/store/uploadStore";
 import { useLoadingStore } from "@/store/loadingStore";
 import { useStorageStore } from "@/store/storageStore";
@@ -107,12 +105,8 @@ function App() {
                 setFolders(response.folders);
                 setFiles(response.files);
             } catch (err) {
-                const error = err as AxiosError;
-
-                if (error.response && error.response.status === 404) {
-                    setFolders([]);
-                    setFiles([]);
-                }
+                console.log(err);
+                throw err;
             } finally {
                 hideLoading();
             }
@@ -124,11 +118,10 @@ function App() {
         query,
         sort,
         trigger,
-        location.pathname,
-        showLoading,
         hideLoading,
-        setFolders,
+        showLoading,
         setFiles,
+        setFolders,
     ]);
 
     useEffect(() => {

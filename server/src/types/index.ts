@@ -53,7 +53,7 @@ export interface IFolder extends Document {
     updatedAt?: Date;
 }
 
-export interface IProfile {
+export interface IProfile extends Document {
     accountId: Types.ObjectId;
     bio?: string;
     location?: string;
@@ -61,12 +61,12 @@ export interface IProfile {
     birthday?: Date;
 }
 
-export interface IRSAkeys {
+export interface IRSAkeys extends Document {
     publicKey: string;
     privateKey: string;
     accountId: Types.ObjectId;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 export interface GetProfileBody {

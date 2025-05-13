@@ -115,8 +115,13 @@ export const getContents = async (
 ) => {
     try {
         const accountId: string = req.userId!;
-        const { encodedPath = "/", query, sort } = req.body;
-        let folderPath = decodeURIComponent(encodedPath);
+        const { encodedPath = "/", query = "", sort = "" } = req.query;
+        let folderPath =
+            typeof encodedPath === "string"
+                ? decodeURIComponent(encodedPath)
+                : "/";
+        let searchQuery = typeof query === "string" ? query : "";
+        let sortOrder = typeof sort === "string" ? sort : "";
 
         const mappings = {
             "/documents": ["document"],
@@ -171,13 +176,13 @@ export const getContents = async (
             isFavorite,
             true,
             types,
-            query
+            searchQuery
         );
 
         // Determine sort options
         const defaultSort = isTrash ? "deletedAt-desc" : "name-asc";
         const sortOptions: Record<string, any> = buildSortOptions(
-            sort || defaultSort
+            sortOrder || defaultSort
         );
 
         // Get files
@@ -211,7 +216,7 @@ export const getContents = async (
                 false,
                 false,
                 types,
-                query
+                searchQuery
             );
 
             folders = await Folder.find(folderFilter).sort(sortOptions);

@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import {
     generateCryptoKeys,
-    encrypt,
-    decrypt,
+    encryptRSA,
+    decryptRSA,
     RsaKeyPair,
 } from "../services/rsa.service";
 
@@ -15,8 +15,8 @@ describe("RsaService", () => {
 
     it("should encrypt and decrypt data correctly", () => {
         const plainText = "Hello, World!";
-        const encryptedText = encrypt(keys.publicKey, plainText);
-        const decryptedText = decrypt(keys.privateKey, encryptedText);
+        const encryptedText = encryptRSA(keys.publicKey, plainText);
+        const decryptedText = decryptRSA(keys.privateKey, encryptedText);
         expect(decryptedText).to.equal(plainText);
     });
 });

@@ -1,5 +1,5 @@
 import express from "express";
-import { verifyToken } from "../middlewares/verifyToken";
+
 import {
     createFolder,
     getFolders,
@@ -12,8 +12,11 @@ import {
     restoreFolder,
 } from "../controllers/folder.controller";
 
+import { verifyToken } from "../middlewares/verifyToken";
+import { decryptRequestBody } from "../middlewares/decryptBody";
+
 const router = express.Router();
-router.use(verifyToken);
+router.use(verifyToken, decryptRequestBody);
 
 // Створення нової папки
 router.post("/", createFolder);
@@ -27,7 +30,7 @@ router.get("/:folderId/download", downloadFolderAsZip);
 
 // Отримання вмісту папки (файли та підпапки)
 // router.post("/content", getFolderContents);
-router.post("/content", getContents);
+router.get("/content", getContents);
 
 // // Перейменування папки
 router.put("/:folderId/rename", renameFolder);

@@ -11,7 +11,7 @@ export const generateSecretKey = (): AesKey => {
     return { key, iv };
 };
 
-export const encrypt = (aesKey: AesKey, plainText: string): string => {
+export const encryptAES = (aesKey: AesKey, plainText: string): string => {
     const key = Buffer.from(aesKey.key, "base64");
     const iv = Buffer.from(aesKey.iv, "base64");
     const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
@@ -22,7 +22,7 @@ export const encrypt = (aesKey: AesKey, plainText: string): string => {
     return encrypted;
 };
 
-export const decrypt = (aesKey: AesKey, cipherText: string): string => {
+export const decryptAES = (aesKey: AesKey, cipherText: string): string => {
     const key = Buffer.from(aesKey.key, "base64");
     const iv = Buffer.from(aesKey.iv, "base64");
     const decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);

@@ -14,14 +14,21 @@ export const generateCryptoKeys = (): RsaKeyPair => {
     return { publicKey, privateKey };
 };
 
-export const encrypt = (publicKey: string, plainText: string): string => {
+export const encryptRSA = (publicKey: string, plainText: string): string => {
     const buffer = Buffer.from(plainText, "utf8");
     const encrypted = crypto.publicEncrypt(publicKey, buffer);
     return encrypted.toString("base64");
 };
 
-export const decrypt = (privateKey: string, cipherText: string): string => {
+export const decryptRSA = (privateKey: string, cipherText: string): string => {
     const buffer = Buffer.from(cipherText, "base64");
-    const decrypted = crypto.privateDecrypt(privateKey, buffer);
+    const decrypted = crypto.privateDecrypt(
+        {
+            key: privateKey,
+            padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+            oaepHash: "sha256",
+        },
+        buffer
+    );
     return decrypted.toString("utf8");
 };

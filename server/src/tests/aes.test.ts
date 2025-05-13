@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import {
     generateSecretKey,
-    encrypt,
-    decrypt,
+    encryptAES,
+    decryptAES,
     AesKey,
 } from "../services/aes.service";
 
@@ -22,8 +22,8 @@ describe("aes.service", () => {
 
     it("should encrypt and decrypt text correctly", () => {
         const plainText = "Hello, AES!";
-        const encryptedText = encrypt(aesKey, plainText);
-        const decryptedText = decrypt(aesKey, encryptedText);
+        const encryptedText = encryptAES(aesKey, plainText);
+        const decryptedText = decryptAES(aesKey, encryptedText);
 
         expect(encryptedText).to.be.a("string");
         expect(encryptedText).to.not.equal(plainText);

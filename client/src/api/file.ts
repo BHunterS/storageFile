@@ -1,21 +1,17 @@
-import axios, { AxiosResponse } from "axios";
+import { AxiosResponse } from "axios";
 
-import { SERVER_URL } from "@/constants";
+import axiosInstance from "@/api/axiosInstance";
+
 import { BaseResponse } from "@/types";
 import { BaseFileResponse } from "@/types/file";
 
-const axiosInstance = axios.create({
-    baseURL: `${SERVER_URL}/api/files`,
-    headers: {
-        "Content-Type": "application/json",
-    },
-});
-
 export const uploadFile = async (data: FormData): Promise<BaseResponse> => {
-    const response = await axios.post(`${SERVER_URL}/api/files/upload`, data, {
-        headers: { "Content-Type": "multipart/form-data" },
+    const response = await axiosInstance.post("/files/upload", data, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+            "X-Skip-Interceptor": "true",
+        },
     });
-
     return response.data;
 };
 
@@ -25,7 +21,7 @@ export const renameFile = async (
 ): Promise<BaseFileResponse> => {
     try {
         const response: AxiosResponse = await axiosInstance.post(
-            `/${fileId}/rename`,
+            `/files/${fileId}/rename`,
             { newName }
         );
 
@@ -39,7 +35,7 @@ export const renameFile = async (
 export const deleteFile = async (fileId: string): Promise<BaseResponse> => {
     try {
         const response: AxiosResponse = await axiosInstance.delete(
-            `/${fileId}`
+            `/files/${fileId}`
         );
 
         return response.data;
@@ -54,7 +50,7 @@ export const updateFileUsers = async (
     emails: string[]
 ): Promise<BaseFileResponse> => {
     try {
-        const response = await axiosInstance.post(`/share`, {
+        const response = await axiosInstance.post(`/files/share`, {
             fileId,
             emails,
         });
@@ -71,7 +67,7 @@ export const restoreFile = async (
 ): Promise<BaseFileResponse> => {
     try {
         const response: AxiosResponse = await axiosInstance.put(
-            `/restore/${fileId}`
+            `/files/restore/${fileId}`
         );
         return response.data;
     } catch (error) {
@@ -85,7 +81,7 @@ export const updateFileFavorite = async (
 ): Promise<BaseFileResponse> => {
     try {
         const response: AxiosResponse = await axiosInstance.put(
-            `/favorite/${fileId}`
+            `/files/favorite/${fileId}`
         );
 
         return response.data;

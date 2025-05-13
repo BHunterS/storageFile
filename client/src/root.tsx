@@ -1,7 +1,9 @@
-import { StrictMode, useEffect } from "react";
+import { useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 import { useAuthStore } from "./store/authStore";
+
+import { getPublicKey } from "./api/cipher";
 
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
@@ -26,78 +28,86 @@ const Root = () => {
 
     useEffect(() => {
         checkAuth();
+
+        const fetchPublicKey = async () => {
+            const data = await getPublicKey();
+            const publicKey = data.publicKey;
+            if (publicKey) {
+                localStorage.setItem("publicKey", publicKey);
+            }
+        };
+
+        fetchPublicKey();
     }, [checkAuth]);
 
     if (isCheckingAuth) return <LoadingSpinner />;
 
     return (
-        <StrictMode>
-            <Router>
-                <Routes>
+        <Router>
+            <Routes>
+                <Route
+                    path="/*"
+                    element={
+                        <ProtectedRoute>
+                            <MainLayout>
+                                <App />
+                            </MainLayout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/profile"
+                    element={
+                        <ProtectedRoute>
+                            <MainLayout>
+                                <ProfilePage />
+                            </MainLayout>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route element={<AuthLayout />}>
                     <Route
-                        path="/*"
+                        path="/login"
                         element={
-                            <ProtectedRoute>
-                                <MainLayout>
-                                    <App />
-                                </MainLayout>
-                            </ProtectedRoute>
+                            <RedirectAuthenticatedUser>
+                                <LoginPage />
+                            </RedirectAuthenticatedUser>
                         }
                     />
-
                     <Route
-                        path="/profile"
+                        path="/signup"
                         element={
-                            <ProtectedRoute>
-                                <MainLayout>
-                                    <ProfilePage />
-                                </MainLayout>
-                            </ProtectedRoute>
+                            <RedirectAuthenticatedUser>
+                                <SignUpPage />
+                            </RedirectAuthenticatedUser>
                         }
                     />
-                    <Route element={<AuthLayout />}>
-                        <Route
-                            path="/login"
-                            element={
-                                <RedirectAuthenticatedUser>
-                                    <LoginPage />
-                                </RedirectAuthenticatedUser>
-                            }
-                        />
-                        <Route
-                            path="/signup"
-                            element={
-                                <RedirectAuthenticatedUser>
-                                    <SignUpPage />
-                                </RedirectAuthenticatedUser>
-                            }
-                        />
-                        <Route
-                            path="/forgot-password"
-                            element={
-                                <RedirectAuthenticatedUser>
-                                    <ForgotPasswordPage />
-                                </RedirectAuthenticatedUser>
-                            }
-                        />
-                        <Route
-                            path="/reset-password/:token"
-                            element={
-                                <RedirectAuthenticatedUser>
-                                    <ResetPasswordPage />
-                                </RedirectAuthenticatedUser>
-                            }
-                        />
-                        <Route
-                            path="/verify-email"
-                            element={<EmailVerificationPage />}
-                        ></Route>
-                    </Route>
+                    <Route
+                        path="/forgot-password"
+                        element={
+                            <RedirectAuthenticatedUser>
+                                <ForgotPasswordPage />
+                            </RedirectAuthenticatedUser>
+                        }
+                    />
+                    <Route
+                        path="/reset-password/:token"
+                        element={
+                            <RedirectAuthenticatedUser>
+                                <ResetPasswordPage />
+                            </RedirectAuthenticatedUser>
+                        }
+                    />
+                    <Route
+                        path="/verify-email"
+                        element={<EmailVerificationPage />}
+                    ></Route>
+                </Route>
 
-                    {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
-                </Routes>
-            </Router>
-        </StrictMode>
+                {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
+            </Routes>
+        </Router>
     );
 };
 
