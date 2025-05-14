@@ -41,7 +41,7 @@ function App() {
 
     const [folders, setFolders] = useState<Folder[]>([]);
     const [selectedFolders, setSelectedFolders] = useState<string[]>([]);
-    const [totalRootSize, setTotalRootSize] = useState<string>("0 KB");
+    const [totalRootSize, setTotalRootSize] = useState<number>(0);
 
     const { loading, showLoading, hideLoading } = useLoadingStore();
     const { currentFolder, setCurrentFolder, files, setFiles } =
@@ -92,6 +92,24 @@ function App() {
     };
 
     useEffect(() => {
+        const folderPath = decodeURIComponent(location.pathname) || "/";
+        setCurrentFolder(folderPath);
+    }, [location.pathname, setCurrentFolder]);
+
+    useEffect(() => {
+        const fetchFolderDetails = async () => {
+            showLoading();
+
+            const data = await getFolderDetails("root");
+            setTotalRootSize(data.details.totalSize);
+
+            hideLoading();
+        };
+
+        fetchFolderDetails();
+    }, [trigger, hideLoading, showLoading]);
+
+    useEffect(() => {
         const fetchFolderContents = async () => {
             try {
                 showLoading();
@@ -124,24 +142,6 @@ function App() {
         setFolders,
     ]);
 
-    useEffect(() => {
-        const folderPath = decodeURIComponent(location.pathname) || "/";
-        setCurrentFolder(folderPath);
-    }, [location.pathname, setCurrentFolder]);
-
-    useEffect(() => {
-        const fetchFolderDetails = async () => {
-            showLoading();
-
-            const data = await getFolderDetails("root");
-            setTotalRootSize(convertFileSize(data.details.totalSize));
-
-            hideLoading();
-        };
-
-        fetchFolderDetails();
-    }, [hideLoading, showLoading, trigger]);
-
     return (
         <ContextMenu>
             <ContextMenuTrigger className="flex-1 pb-4 overflow-hidden">
@@ -152,8 +152,10 @@ function App() {
 
                             <div className="total-size-section">
                                 <p className="body-1">
-                                    Total:{" "}
-                                    <span className="h5">{totalRootSize}</span>
+                                    Total using space:{" "}
+                                    <span className="h5">
+                                        {convertFileSize(totalRootSize)}
+                                    </span>
                                 </p>
 
                                 <div className="sort-container">

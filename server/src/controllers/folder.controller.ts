@@ -1,4 +1,5 @@
 import { NextFunction, Response } from "express";
+import mongoose from "mongoose";
 import archiver from "archiver";
 import path from "path";
 import fs from "fs";
@@ -250,7 +251,8 @@ export const getFolderDetails = async (
         const accountId: string = req.userId!;
 
         const matchFilter: any = {
-            accountId,
+            accountId: new mongoose.Types.ObjectId(accountId),
+            isDeleted: false,
         };
 
         if (folderId !== "root") {

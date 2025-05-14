@@ -28,7 +28,7 @@ export const convertFileSize = (
         }
     }
 
-    return "";
+    return "0 KB";
 };
 
 export const calculatePercentage = (sizeInBytes: number) => {
