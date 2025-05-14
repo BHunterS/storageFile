@@ -1,7 +1,18 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-import { MoreVertical } from "lucide-react";
+import {
+    MoreVertical,
+    Edit,
+    Info,
+    Share2,
+    Download,
+    Trash,
+    Heart,
+    Move,
+    Copy,
+    ArchiveRestore,
+} from "lucide-react";
 
 import { useUploadStore } from "@/store/uploadStore";
 import { useLoadingStore } from "@/store/loadingStore";
@@ -17,7 +28,7 @@ import { deleteFolder, renameFolder, restoreFolder } from "@/api/folder";
 
 import { isFile } from "@/utils/helpers";
 
-import { actionsDropdownItems, SERVER_URL } from "@/constants";
+import { SERVER_URL } from "@/constants";
 
 import {
     Dialog,
@@ -39,6 +50,63 @@ import { Button } from "@/components/ui/button";
 import { FileDetails, FolderDetails } from "@/components/ActionsModalContent";
 
 import { ActionType, BaseResponse, Folder, SFile } from "@/types";
+
+const actionsDropdownItems = [
+    {
+        label: "Details",
+        icon: <Info size={26} color="green" />,
+        value: "details",
+        group: "main",
+    },
+    {
+        label: "Rename",
+        icon: <Edit size={26} color="blue" />,
+        value: "rename",
+        group: "main",
+    },
+    {
+        label: "Move to",
+        icon: <Move size={26} color="gray" />,
+        value: "move_to",
+        group: "main",
+    },
+    {
+        label: "Copy",
+        icon: <Copy size={26} color="teal" />,
+        value: "copy",
+        group: "main",
+    },
+    {
+        label: "Delete",
+        icon: <Trash size={26} color="red" />,
+        value: "delete",
+        group: "main",
+    },
+    {
+        label: "Restore",
+        icon: <ArchiveRestore size={26} color="blue" />,
+        value: "restore",
+        group: "main",
+    },
+    {
+        label: "Share",
+        icon: <Share2 size={26} color="orange" />,
+        value: "share",
+        group: "share",
+    },
+    {
+        label: "Download",
+        icon: <Download size={26} color="purple" />,
+        value: "download",
+        group: "share",
+    },
+    {
+        label: "Favorite",
+        icon: <Heart size={26} color="pink" />,
+        value: "favorite",
+        group: "favorite",
+    },
+];
 
 const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -229,7 +297,7 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
                     <DropdownMenuLabel className="max-w-[200px] truncate">
                         {item.name}
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
+                    <DropdownMenuSeparator className="bg-black mr-2 ml-2" />
                     {actionsDropdownItems
                         .filter((actionItem) => {
                             if (actionItem.value === "restore") {
@@ -240,47 +308,47 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
                             }
                             return true;
                         })
-                        .map((actionItem) => (
-                            <DropdownMenuItem
-                                key={actionItem.value}
-                                className="shad-dropdown-item"
-                                onClick={() => {
-                                    handleClick(actionItem);
-                                }}
-                            >
-                                {actionItem.value === "download" ? (
-                                    <Link
-                                        to={`${
-                                            isFile(item)
-                                                ? (item as SFile).url +
-                                                  (item as SFile)._id +
-                                                  "?download=true"
-                                                : `${SERVER_URL}/api/folders/${item._id}/download`
-                                        }`}
-                                        download={item.name}
-                                        className="flex items-center gap-2"
+                        .map((actionItem, index, array) => {
+                            const isNewGroup =
+                                index === 0 ||
+                                array[index - 1].group !== actionItem.group;
+                            return (
+                                <>
+                                    {isNewGroup && index !== 0 && (
+                                        <DropdownMenuSeparator className="bg-black mr-2 ml-2" />
+                                    )}
+                                    <DropdownMenuItem
+                                        key={actionItem.value}
+                                        className="shad-dropdown-item"
+                                        onClick={() => {
+                                            handleClick(actionItem);
+                                        }}
                                     >
-                                        <img
-                                            src={actionItem.icon}
-                                            alt={actionItem.label}
-                                            width={30}
-                                            height={30}
-                                        />
-                                        {actionItem.label}
-                                    </Link>
-                                ) : (
-                                    <div className="flex items-center gap-2">
-                                        <img
-                                            src={actionItem.icon}
-                                            alt={actionItem.label}
-                                            width={30}
-                                            height={30}
-                                        />
-                                        {actionItem.label}
-                                    </div>
-                                )}
-                            </DropdownMenuItem>
-                        ))}
+                                        {actionItem.value === "download" ? (
+                                            <Link
+                                                to={`${
+                                                    isFile(item)
+                                                        ? (item as SFile).url +
+                                                          (item as SFile)._id +
+                                                          "?download=true"
+                                                        : `${SERVER_URL}/api/folders/${item._id}/download`
+                                                }`}
+                                                download={item.name}
+                                                className="flex items-center gap-2"
+                                            >
+                                                {actionItem.icon}
+                                                {actionItem.label}
+                                            </Link>
+                                        ) : (
+                                            <div className="flex items-center gap-2">
+                                                {actionItem.icon}
+                                                {actionItem.label}
+                                            </div>
+                                        )}
+                                    </DropdownMenuItem>
+                                </>
+                            );
+                        })}
                 </DropdownMenuContent>
             </DropdownMenu>
 

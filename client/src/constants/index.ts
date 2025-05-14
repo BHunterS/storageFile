@@ -1,43 +1,5 @@
 export const SERVER_URL = "http://localhost:5000";
 
-export const actionsDropdownItems = [
-    {
-        label: "Rename",
-        icon: "/assets/icons/edit.svg",
-        value: "rename",
-    },
-    {
-        label: "Details",
-        icon: "/assets/icons/info.svg",
-        value: "details",
-    },
-    {
-        label: "Share",
-        icon: "/assets/icons/share.svg",
-        value: "share",
-    },
-    {
-        label: "Download",
-        icon: "/assets/icons/download.svg",
-        value: "download",
-    },
-    {
-        label: "Delete",
-        icon: "/assets/icons/delete.svg",
-        value: "delete",
-    },
-    {
-        label: "Restore",
-        icon: "/assets/icons/restore.svg",
-        value: "restore",
-    },
-    {
-        label: "Favorite",
-        icon: "/assets/icons/favorite.svg",
-        value: "favorite",
-    },
-];
-
 export const sortTypes = [
     {
         label: "Date created (newest)",

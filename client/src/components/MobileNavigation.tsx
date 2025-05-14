@@ -11,6 +11,7 @@ import {
     Heart,
     Menu,
     LogOut,
+    Share2,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -64,6 +65,11 @@ const navItems = [
         name: "Favorite",
         icon: <Heart />,
         url: "/favorite",
+    },
+    {
+        name: "Shared",
+        icon: <Share2 />,
+        url: "/shared",
     },
 ];
 

@@ -1,3 +1,5 @@
+import { JSX } from "react";
+
 export type FileType = "document" | "image" | "video" | "audio" | "other";
 
 export interface BaseResponse {
@@ -57,6 +59,6 @@ export interface Profile {
 
 export interface ActionType {
     label: string;
-    icon: string;
+    icon: JSX.Element;
     value: string;
 }

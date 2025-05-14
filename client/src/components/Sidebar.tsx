@@ -10,6 +10,7 @@ import {
     Folder,
     Trash2,
     Heart,
+    Share2,
 } from "lucide-react";
 
 const navItems = [
@@ -47,6 +48,11 @@ const navItems = [
         name: "Favorite",
         icon: <Heart />,
         url: "/favorite",
+    },
+    {
+        name: "Shared",
+        icon: <Share2 />,
+        url: "/shared",
     },
 ];
 
