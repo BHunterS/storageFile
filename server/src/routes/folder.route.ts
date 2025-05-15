@@ -28,8 +28,6 @@ router.get("/:folderId/details", getFolderDetails);
 
 router.get("/:folderId/download", downloadFolderAsZip);
 
-// Отримання вмісту папки (файли та підпапки)
-// router.post("/content", getFolderContents);
 router.get("/content", getContents);
 
 // // Перейменування папки

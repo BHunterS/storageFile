@@ -1,3 +1,5 @@
+import mongoose, { mongo } from "mongoose";
+
 import { createError } from "./createError";
 
 // export const buildFileFilter = (
@@ -25,13 +27,17 @@ export const buildFilter = (
     isDeleted: boolean,
     isFavorite: boolean,
     isFile: boolean,
+    isShared: boolean,
     types: string[],
-    query?: string
+    query?: string,
+    email?: string
 ) => {
     return {
-        accountId,
+        ...(!isShared && { accountId }),
         isDeleted,
-        ...(!isFavorite &&
+        ...(isShared && { users: email }),
+        ...(!isShared &&
+            !isFavorite &&
             types.length === 0 && {
                 [isFile ? "folderPath" : "parentFolder"]: folderPath,
             }),
@@ -77,4 +83,9 @@ export const getParentFolderFromPath = (path: string | undefined): string => {
     }
 
     return "/";
+};
+
+export const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+    return emailRegex.test(email);
 };

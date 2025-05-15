@@ -31,7 +31,7 @@ export interface IFile extends Document {
     accountId: Types.ObjectId;
     extension?: string;
     size?: number;
-    users: Types.ObjectId[];
+    users: string[];
     isDeleted: boolean;
     deletedAt?: Date;
     originalPath?: string;

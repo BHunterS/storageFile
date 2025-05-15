@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import {
@@ -23,6 +23,8 @@ import {
     updateFileUsers,
     restoreFile,
     updateFileFavorite,
+    getSharedEmails,
+    removeSharedEmail,
 } from "@/api/file";
 import { deleteFolder, renameFolder, restoreFolder } from "@/api/folder";
 
@@ -47,7 +49,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FileDetails, FolderDetails } from "@/components/ActionsModalContent";
+import {
+    FileDetails,
+    FolderDetails,
+    ShareInput,
+} from "@/components/ActionsModalContent";
 
 import { ActionType, BaseResponse, Folder, SFile } from "@/types";
 
@@ -128,8 +134,6 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
 
     const folderActions = {
         rename: (item: Folder) => renameFolder(item._id, name),
-        // TODO share folder
-        // share: (item: Folder) => item,
         delete: (item: Folder) => deleteFolder(item._id),
         restore: (item: Folder) => restoreFolder(item._id),
     };
@@ -169,17 +173,14 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
         }
     };
 
-    // const handleRemoveUser = async (email: string) => {
-    //     const updatedEmails = emails.filter((e) => e !== email);
+    const handleRemoveUser = async (email: string) => {
+        const updatedEmails = emails.filter((e) => e !== email);
 
-    //     const success = await updateFileUsers({
-    //         fileId: file._id,
-    //         emails: updatedEmails,
-    //     });
+        const response = await removeSharedEmail(item._id, email);
 
-    //     if (success) setEmails(updatedEmails);
-    //     closeAllModals();
-    // };
+        if (response.success) setEmails(updatedEmails);
+        closeAllModals();
+    };
 
     const handleClick = (actionItem: ActionType): void => {
         const list = [
@@ -223,13 +224,13 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
                             <FolderDetails folder={item as Folder} />
                         )
                     ) : null}
-                    {/*{value === "share" && (
+                    {value === "share" && (
                         <ShareInput
-                            file={file}
+                            file={item as SFile}
                             onInputChange={setEmails}
                             onRemove={handleRemoveUser}
                         />
-                    )} */}
+                    )}
                     {value === "delete" && (
                         <p className="delete-confirmation">
                             Are you sure you want to delete{` `}
@@ -283,6 +284,16 @@ const ActionDropdown = ({ item }: { item: SFile | Folder }) => {
             </DialogContent>
         );
     };
+
+    useEffect(() => {
+        const fetchEmails = async () => {
+            const data = await getSharedEmails(item._id);
+
+            setEmails(data.emails);
+        };
+
+        fetchEmails();
+    }, [item._id]);
 
     return (
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

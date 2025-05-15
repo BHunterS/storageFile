@@ -2,14 +2,18 @@ import multer, { Multer, StorageEngine } from "multer";
 import path from "path";
 import fs from "fs";
 import mime from "mime-types";
+import mongoose from "mongoose";
+
 import { NextFunction, RequestHandler, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
 import File from "../models/file.model";
 import Folder from "../models/folder.model";
+import User from "../models/user.model";
 import Log from "../models/log.model";
 
 import { createError } from "../utils/createError";
+import { isValidEmail } from "../utils/helpers";
 
 import { fileType, RequestWithUserId, RequestWithStorageName } from "types";
 
@@ -114,7 +118,13 @@ export const getFile = async (
         const { fileId } = req.params;
         const download: boolean = req.query.download === "true";
 
-        const file = await File.findOne({ _id: fileId, accountId });
+        const user = await User.findOne({ _id: accountId });
+        const email = user?.email;
+
+        const file = await File.findOne({
+            _id: fileId,
+            $or: [{ accountId }, { users: email }],
+        });
         if (!file) throw createError(404, "File not found!");
 
         const filePath: string = path.join(
@@ -122,7 +132,7 @@ export const getFile = async (
             "..",
             "..",
             "uploads",
-            accountId,
+            file.accountId.toString(),
             file.storageName
         );
 
@@ -385,45 +395,113 @@ export const updateFavorite = async (
     }
 };
 
-// export const shareFileWithUsers = async (
-//     req: Request,
-//     res: Response,
-//     next: NextFunction
-// ) => {
-//     try {
-//         const accountId = req.userId;
-//         const { fileId, emails } = req.body;
+export const updateUsers = async (
+    req: RequestWithUserId,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const accountId = req.userId!;
+        const { fileId, emails } = req.body;
 
-//         if (!fileId || !Array.isArray(emails) || emails.length === 0) {
-//             throw createError(400, "fileId and email are required");
-//         }
+        if (!fileId || !Array.isArray(emails) || emails.length === 0) {
+            throw createError(400, "fileId and emails are required");
+        }
 
-//         const file = await File.findOne({ _id: fileId, accountId });
-//         if (!file) {
-//             throw createError(404, "File not found or access denied");
-//         }
+        const uniqueValidEmails = [...new Set(emails)].filter((email) =>
+            isValidEmail(email)
+        );
 
-//         const usersToShare = await User.find({ email: { $in: emails } });
+        if (uniqueValidEmails.length === 0) {
+            throw createError(400, "No valid emails provided");
+        }
 
-//         if (!usersToShare.length) {
-//             throw createError(404, "No users found with provided emails");
-//         }
+        const file = await File.findOne({ _id: fileId, accountId });
+        if (!file) throw createError(404, "File not found");
 
-//         const newUserIds: string[] = usersToShare
-//             .map((user) => user._id as string)
-//             .filter((id) => !file.users.map((u) => u.toString()).includes(id));
+        const usersToShare = await User.find({ email: { $in: emails } });
 
-//         file.users.push(
-//             ...newUserIds.map((id) => new mongoose.Types.ObjectId(id))
-//         );
-//         await file.save();
+        if (!usersToShare.length) {
+            throw createError(404, "No users found with provided emails");
+        }
 
-//         res.status(200).json({
-//             success: true,
-//             message: "File shared successfully",
-//             sharedWith: usersToShare.map((u) => u.email),
-//         });
-//     } catch (error) {
-//         next(error);
-//     }
-// };
+        const existingUserEmails = file.users.map((u) => u.toString());
+        const newUserEmails: string[] = usersToShare
+            .map((user) => user.email as string)
+            .filter((email) => !existingUserEmails.includes(email));
+
+        file.users.push(...newUserEmails);
+        await file.save();
+
+        res.status(200).json({
+            success: true,
+            message: "File shared successfully",
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getSharedEmails = async (
+    req: RequestWithUserId,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const accountId = req.userId!;
+        const { fileId } = req.params;
+
+        const file = await File.findOne({ _id: fileId, accountId });
+        let emails: string[] = [];
+
+        if (file) emails = file.users;
+
+        res.status(200).json({
+            message: "Shared emails successfully founded",
+            success: true,
+            emails,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const removeSharedUser = async (
+    req: RequestWithUserId,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const accountId = req.userId!;
+        const { fileId, email } = req.params;
+
+        console.log(fileId, email);
+
+        if (!fileId || !email) {
+            throw createError(400, "fileId and email are required");
+        }
+
+        const file = await File.findOne({ _id: fileId, accountId });
+        if (!file) {
+            throw createError(404, "File not found or access denied");
+        }
+
+        const wasShared = file.users.includes(email);
+        if (!wasShared) {
+            throw createError(
+                400,
+                "This user does not have access to the file"
+            );
+        }
+
+        file.users = file.users.filter((u) => u !== email);
+        await file.save();
+
+        res.status(200).json({
+            success: true,
+            message: `Access revoked from ${email}`,
+        });
+    } catch (error) {
+        next(error);
+    }
+};

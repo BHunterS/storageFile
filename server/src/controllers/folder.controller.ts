@@ -7,6 +7,7 @@ import fs from "fs";
 import Folder from "../models/folder.model";
 import File from "../models/file.model";
 import Log from "../models/log.model";
+import UserModel from "../models/user.model";
 
 import { createError } from "../utils/createError";
 
@@ -152,12 +153,23 @@ export const getContents = async (
         const isType = Object.keys(mappings).some((prefix) =>
             folderPath.startsWith(prefix)
         );
+        const isShared = folderPath.startsWith("/shared");
+        let email: string | undefined = "";
+
+        if (isShared) {
+            const user = await UserModel.findOne({
+                _id: new mongoose.Types.ObjectId(accountId),
+            });
+            email = user?.email;
+        }
 
         let actualFolderPath = folderPath;
         if (isTrash) {
             actualFolderPath = folderPath.replace(/^\/trash(\/|$)/, "/");
         } else if (isFavorite) {
             actualFolderPath = folderPath.replace(/^\/favorite(\/|$)/, "/");
+        } else if (isShared) {
+            actualFolderPath = folderPath.replace(/^\/shared(\/|$)/, "/");
         } else if (isType) {
             actualFolderPath = folderPath.replace(
                 /^\/(documents|images|media|other)(\/|$)/,
@@ -187,8 +199,10 @@ export const getContents = async (
             isTrash,
             isFavorite,
             true,
+            isShared,
             types,
-            searchQuery
+            searchQuery,
+            email
         );
 
         // Determine sort options
@@ -220,15 +234,17 @@ export const getContents = async (
         let folders: any = [];
 
         // Get folders if not filtering by types
-        if ((types.length === 0 && !isFavorite) || isTrash) {
+        if ((types.length === 0 && !isFavorite && !isShared) || isTrash) {
             const folderFilter = buildFilter(
                 accountId,
                 actualFolderPath,
                 isTrash,
                 false,
                 false,
+                isShared,
                 types,
-                searchQuery
+                searchQuery,
+                email
             );
 
             folders = await Folder.find(folderFilter).sort(sortOptions);

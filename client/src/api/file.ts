@@ -3,7 +3,7 @@ import { AxiosResponse } from "axios";
 import axiosInstance from "@/api/axiosInstance";
 
 import { BaseResponse } from "@/types";
-import { BaseFileResponse } from "@/types/file";
+import { BaseFileResponse, GetSharedEmailResponse } from "@/types/file";
 
 export const uploadFile = async (data: FormData): Promise<BaseResponse> => {
     const response = await axiosInstance.post("/files/upload", data, {
@@ -49,17 +49,12 @@ export const updateFileUsers = async (
     fileId: string,
     emails: string[]
 ): Promise<BaseFileResponse> => {
-    try {
-        const response = await axiosInstance.post(`/files/share`, {
-            fileId,
-            emails,
-        });
+    const response = await axiosInstance.post(`/files/share`, {
+        fileId,
+        emails,
+    });
 
-        return response.data;
-    } catch (error) {
-        console.error("Error renaming file:", error);
-        throw error;
-    }
+    return response.data;
 };
 
 export const restoreFile = async (
@@ -89,4 +84,25 @@ export const updateFileFavorite = async (
         console.error("Error updating file favorite:", error);
         throw error;
     }
+};
+
+export const getSharedEmails = async (
+    fileId: string
+): Promise<GetSharedEmailResponse> => {
+    const response: AxiosResponse = await axiosInstance.get(
+        `/files/shared/${fileId}`
+    );
+
+    return response.data;
+};
+
+export const removeSharedEmail = async (
+    fileId: string,
+    email: string
+): Promise<BaseResponse> => {
+    const response: AxiosResponse = await axiosInstance.get(
+        `/files/shared/${fileId}/${email}`
+    );
+
+    return response.data;
 };
