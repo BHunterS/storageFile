@@ -8,6 +8,7 @@ dotenv.config();
 import Folder from "../models/folder.model";
 import File from "../models/file.model";
 import User from "../models/user.model";
+import Log from "../models/log.model";
 
 async function dropAll() {
     try {
@@ -21,6 +22,9 @@ async function dropAll() {
 
         await File.deleteMany({});
         console.log("🗑️ All files deleted");
+
+        await Log.deleteMany({});
+        console.log("🗑️ All logs deleted");
 
         // await User.deleteMany({});
         // console.log("🗑️ All users deleted");

@@ -53,6 +53,16 @@ export interface IFolder extends Document {
     updatedAt?: Date;
 }
 
+export interface ILog {
+    accountId: Types.ObjectId;
+    action: string;
+    targetType: string;
+    targetName: string;
+    targetMessage: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
 export interface IProfile extends Document {
     accountId: Types.ObjectId;
     bio?: string;

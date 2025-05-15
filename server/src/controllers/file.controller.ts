@@ -7,16 +7,13 @@ import { v4 as uuidv4 } from "uuid";
 
 import File from "../models/file.model";
 import Folder from "../models/folder.model";
+import Log from "../models/log.model";
 
 import { createError } from "../utils/createError";
 
-import {
-    fileType,
-    renameFileRequest,
-    User,
-    RequestWithUserId,
-    RequestWithStorageName,
-} from "types";
+import { fileType, RequestWithUserId, RequestWithStorageName } from "types";
+
+const TARGET_TYPE = "file";
 
 const storage: StorageEngine = multer.diskStorage({
     destination: function (
@@ -90,6 +87,14 @@ export const uploadFile = async (
 
         await newFile.save();
 
+        await Log.create({
+            accountId,
+            action: "upload",
+            targetType: TARGET_TYPE,
+            targetName: newFile.name,
+            targetMessage: folderPath,
+        });
+
         res.status(201).json({
             success: true,
             message: "File succesfully uploaded!",
@@ -131,6 +136,17 @@ export const getFile = async (
             "Content-Disposition",
             download ? `attachment; filename="${file.name}"` : "inline"
         );
+
+        if (download) {
+            await Log.create({
+                accountId,
+                action: "download",
+                targetType: TARGET_TYPE,
+                targetName: file.name,
+                targetMessage: "",
+            });
+        }
+
         res.sendFile(filePath);
     } catch (error) {
         next(error);
@@ -145,7 +161,7 @@ export const renameFile = async (
     try {
         const accountId: string = req.userId!;
         const { fileId } = req.params;
-        const { newName }: renameFileRequest = req.body;
+        const { newName }: { newName: string } = req.body;
 
         if (!fileId || !newName)
             throw createError(400, "Both fileId and newName are required!");
@@ -159,37 +175,29 @@ export const renameFile = async (
 
         let finalName: string = newName + extension;
 
-        if (fileDoc.name === finalName) {
-            res.status(200).json({
-                success: true,
-                message: "File renamed successfully!",
-            });
-        }
-
-        const uploadsDir: string = path.join(
-            __dirname,
-            "..",
-            "..",
-            "uploads",
-            accountId
-        );
-        let newPath: string = path.join(uploadsDir, finalName);
         let counter: number = 1;
-
-        while (fs.existsSync(newPath)) {
-            const numberedName: string = `${newName} (${counter})${extension}`;
-            newPath = path.join(uploadsDir, numberedName);
-            finalName = numberedName;
+        while (
+            await File.findOne({
+                name: finalName,
+                folderPath: fileDoc.folderPath,
+                accountId,
+            })
+        ) {
+            finalName = `${newName} (${counter})${extension}`;
             counter++;
         }
 
-        const oldPath: string = path.join(uploadsDir, fileDoc.name);
-        fs.renameSync(oldPath, newPath);
-
+        const oldName: string = fileDoc.name;
         fileDoc.name = finalName;
-        fileDoc.url = `${process.env.SERVER_URL}/api/files/${finalName}`;
-        fileDoc.folderPath = path.join("uploads", accountId, finalName);
         await fileDoc.save();
+
+        await Log.create({
+            accountId,
+            action: "rename",
+            targetType: TARGET_TYPE,
+            targetName: oldName,
+            targetMessage: newName,
+        });
 
         res.status(200).json({
             success: true,
@@ -215,14 +223,16 @@ export const deleteFile = async (
         const fileDoc = await File.findOne({ _id: fileId, accountId });
         if (!fileDoc) throw createError(404, "File not found!");
 
-        if (permanent || fileDoc.isDeleted) {
+        const isPermanent = permanent || fileDoc.isDeleted;
+
+        if (isPermanent) {
             const filePath: string = path.join(
                 __dirname,
                 "..",
                 "..",
                 "uploads",
                 accountId,
-                fileDoc.name
+                fileDoc.storageName
             );
 
             if (fs.existsSync(filePath)) {
@@ -238,6 +248,14 @@ export const deleteFile = async (
 
             await fileDoc.save();
         }
+
+        await Log.create({
+            accountId,
+            action: "delete",
+            targetType: TARGET_TYPE,
+            targetName: fileDoc.name,
+            targetMessage: isPermanent ? "permanent" : "soft",
+        });
 
         res.status(200).json({
             success: true,
@@ -310,6 +328,14 @@ export const restoreFile = async (
 
         await file.save();
 
+        await Log.create({
+            accountId,
+            action: "restore",
+            targetType: TARGET_TYPE,
+            targetName: file.name,
+            targetMessage: file.folderPath,
+        });
+
         res.status(200).json({
             success: true,
             message: "File successfully restored!",
@@ -338,6 +364,14 @@ export const updateFavorite = async (
 
         file.isFavorite = !file.isFavorite;
         await file.save();
+
+        await Log.create({
+            accountId,
+            action: "favorite",
+            targetType: TARGET_TYPE,
+            targetName: file.name,
+            targetMessage: file.isFavorite ? "added to" : "removed from",
+        });
 
         res.status(200).json({
             success: true,

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, History } from "lucide-react";
 
 import { useAuthStore } from "@/store/authStore";
 
@@ -64,6 +64,18 @@ const UserMenu: React.FC<UserMenuProps> = ({ name, email, avatar }) => {
                         <User className="w-5 h-5 mr-2 text-muted-foreground" />
                         <span className="text-base text-foreground">
                             My profile
+                        </span>
+                    </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem className="cursor-pointer px-3 py-2 text-sm font-medium hover:bg-muted transition-colors rounded-md">
+                    <Link
+                        to="/actions"
+                        className="w-full h-full flex items-center"
+                    >
+                        <History className="w-5 h-5 mr-2 text-muted-foreground" />
+                        <span className="text-base text-foreground">
+                            My actions
                         </span>
                     </Link>
                 </DropdownMenuItem>

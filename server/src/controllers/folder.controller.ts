@@ -6,6 +6,7 @@ import fs from "fs";
 
 import Folder from "../models/folder.model";
 import File from "../models/file.model";
+import Log from "../models/log.model";
 
 import { createError } from "../utils/createError";
 
@@ -15,6 +16,8 @@ import {
     buildSortOptions,
     getParentFolderFromPath,
 } from "../utils/helpers";
+
+const TARGET_TYPE = "folder";
 
 async function getAllSubfolders(folderId: string) {
     const folder = await Folder.findById(folderId);
@@ -75,6 +78,14 @@ export const createFolder = async (
         });
 
         await folder.save();
+
+        await Log.create({
+            accountId,
+            action: "create",
+            targetName: folderName,
+            targetType: TARGET_TYPE,
+            targetMessage: parentFolder,
+        });
 
         res.status(201).json({
             success: true,
@@ -374,6 +385,14 @@ export const renameFolder = async (
             ]
         );
 
+        await Log.create({
+            accountId,
+            action: "rename",
+            targetName: folderName,
+            targetType: TARGET_TYPE,
+            targetMessage: newName,
+        });
+
         res.status(200).json({
             success: true,
             message: "Folder successfully renamed.",
@@ -403,8 +422,9 @@ export const deleteFolder = async (
 
         const folderPath = folder.path;
         const parentFolder = folder.parentFolder;
+        const isPermanent = permament || folder.isDeleted;
 
-        if (permament || folder.isDeleted) {
+        if (isPermanent) {
             const files = await File.find({
                 accountId,
                 $or: [
@@ -495,6 +515,14 @@ export const deleteFolder = async (
                 await file.save();
             }
         }
+
+        await Log.create({
+            accountId,
+            action: "delete",
+            targetName: folder.name,
+            targetType: TARGET_TYPE,
+            targetMessage: isPermanent ? "permanent" : "soft",
+        });
 
         res.status(200).json({
             success: true,
@@ -706,6 +734,14 @@ export const downloadFolderAsZip = async (
                 });
             }, 1000);
         }
+
+        await Log.create({
+            accountId,
+            action: "download",
+            targetName: mainFolder.name,
+            targetType: TARGET_TYPE,
+            targetMessage: "zip",
+        });
     } catch (error) {
         next(error);
     }
@@ -803,6 +839,14 @@ export const restoreFolder = async (
 
             await subfolder.save();
         }
+
+        await Log.create({
+            accountId,
+            action: "restore",
+            targetName: folder.name,
+            targetType: TARGET_TYPE,
+            targetMessage: "",
+        });
 
         res.status(200).json({
             success: true,

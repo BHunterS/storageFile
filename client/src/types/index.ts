@@ -57,6 +57,32 @@ export interface Profile {
     birthdate?: string;
 }
 
+// TODO actions
+export type LogAction =
+    | "create"
+    | "rename"
+    | "delete"
+    | "move"
+    // | "share"
+    // | "copy"
+    // | "paste"
+    | "upload"
+    | "restore"
+    | "download"
+    | "favorite";
+export type LogType = "file" | "folder";
+
+export interface Log {
+    _id: string;
+    accoundId: string;
+    action: LogAction;
+    targetType: LogType;
+    targetName: string;
+    targetMessage: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
 export interface ActionType {
     label: string;
     icon: JSX.Element;
