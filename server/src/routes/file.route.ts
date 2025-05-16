@@ -22,7 +22,6 @@ router.get("/:fileId", getFile);
 router.post("/upload", uploadSingle, uploadFile);
 router.post("/:fileId/rename", renameFile);
 router.delete("/:fileId", deleteFile);
-// Restore file from trash
 router.put("/restore/:fileId", restoreFile);
 router.put("/favorite/:fileId", updateFavorite);
 router.post("/share", updateUsers);

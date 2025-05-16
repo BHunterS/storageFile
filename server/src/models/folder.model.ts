@@ -11,6 +11,10 @@ const folderSchema = new Schema<IFolder>(
             ref: "User",
             required: true,
         },
+        spaceId: {
+            type: Schema.Types.ObjectId,
+            ref: "Space",
+        },
         users: [{ type: Schema.Types.ObjectId, ref: "User" }],
         isDeleted: { type: Boolean, default: false },
         deletedAt: { type: Date },

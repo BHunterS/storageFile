@@ -16,6 +16,7 @@ import folderRoutes from "./routes/folder.route";
 import profileRoutes from "./routes/profile.route";
 import cipherRoutes from "./routes/cipher.route";
 import logRoutes from "./routes/log.route";
+import spaceRoutes from "./routes/space.route";
 
 dotenv.config();
 
@@ -44,6 +45,7 @@ app.use("/api/folders", folderRoutes);
 app.use("/api/profiles", profileRoutes);
 app.use("/api/ciphers", cipherRoutes);
 app.use("/api/logs", logRoutes);
+app.use("/api/spaces", spaceRoutes);
 
 // Error handling
 app.use(errorLogger);

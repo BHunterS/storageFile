@@ -18,6 +18,10 @@ const fileSchema = new Schema<IFile>(
             ref: "User",
             required: true,
         },
+        spaceId: {
+            type: Schema.Types.ObjectId,
+            ref: "Space",
+        },
         extension: { type: String, maxlength: 10 },
         size: { type: Number },
         users: [{ type: String }],

@@ -153,7 +153,7 @@ export const getFile = async (
                 action: "download",
                 targetType: TARGET_TYPE,
                 targetName: file.name,
-                targetMessage: "",
+                targetMessage: "some",
             });
         }
 

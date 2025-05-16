@@ -1,6 +1,22 @@
 import { Request } from "express";
 import { Types, Document } from "mongoose";
 
+export interface ISpace {
+    _id?: string;
+    name: string;
+    description?: string;
+    owner: string | IUser;
+    members: {
+        user: string | IUser;
+        role: "admin" | "editor" | "viewer";
+        addedAt: Date;
+    }[];
+    logo?: string;
+    isActive: boolean;
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+
 // TODO delete unnecessary interfaces and do some refactoring
 export interface IUser extends Document {
     email: string;
@@ -29,6 +45,7 @@ export interface IFile extends Document {
     type: fileType;
     folderPath: string;
     accountId: Types.ObjectId;
+    spaceId?: string | ISpace;
     extension?: string;
     size?: number;
     users: string[];
@@ -45,6 +62,7 @@ export interface IFolder extends Document {
     path: string;
     parentFolder: string;
     accountId: Types.ObjectId | string;
+    spaceId?: string | ISpace;
     users?: Types.ObjectId[] | string[];
     isDeleted: boolean;
     deletedAt?: Date;

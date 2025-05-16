@@ -57,6 +57,22 @@ export interface Profile {
     birthdate?: string;
 }
 
+export interface Space {
+    _id: string;
+    name: string;
+    description?: string;
+    owner: string | User;
+    members: {
+        user: string | User;
+        role: "admin" | "editor" | "viewer";
+        addedAt: Date;
+    }[];
+    logo: string;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
 // TODO actions
 export type LogAction =
     | "create"
