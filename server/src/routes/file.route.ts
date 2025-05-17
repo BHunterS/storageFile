@@ -14,18 +14,28 @@ import {
 
 import { verifyToken } from "../middlewares/verifyToken";
 import { decryptRequestBody } from "../middlewares/decryptBody";
+import { checkScope } from "../middlewares/checkScope";
+import {
+    onlyPersonalAccessMiddleware,
+    editAccessMiddleware,
+    viewAccessMiddleware,
+} from "../middlewares/checkSpaceAccessLevel";
 
 const router: Router = express.Router();
-router.use(verifyToken, decryptRequestBody);
+router.use(verifyToken, checkScope, decryptRequestBody);
 
-router.get("/:fileId", getFile);
-router.post("/upload", uploadSingle, uploadFile);
-router.post("/:fileId/rename", renameFile);
-router.delete("/:fileId", deleteFile);
-router.put("/restore/:fileId", restoreFile);
-router.put("/favorite/:fileId", updateFavorite);
-router.post("/share", updateUsers);
-router.get("/shared/:fileId", getSharedEmails);
-router.get("/shared/:fileId/:email", removeSharedUser);
+router.get("/:fileId", viewAccessMiddleware, getFile);
+router.post("/upload", editAccessMiddleware, uploadSingle, uploadFile);
+router.post("/:fileId/rename", editAccessMiddleware, renameFile);
+router.delete("/:fileId", editAccessMiddleware, deleteFile);
+router.put("/restore/:fileId", editAccessMiddleware, restoreFile);
+router.put("/favorite/:fileId", editAccessMiddleware, updateFavorite);
+router.post("/share", onlyPersonalAccessMiddleware, updateUsers);
+router.get("/shared/:fileId", onlyPersonalAccessMiddleware, getSharedEmails);
+router.get(
+    "/shared/:fileId/:email",
+    onlyPersonalAccessMiddleware,
+    removeSharedUser
+);
 
 export default router;

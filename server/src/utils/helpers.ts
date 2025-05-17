@@ -1,6 +1,7 @@
 import mongoose, { mongo } from "mongoose";
 
 import { createError } from "./createError";
+import { Scope } from "types";
 
 // export const buildFileFilter = (
 //     accountId: string | undefined,
@@ -22,7 +23,7 @@ import { createError } from "./createError";
 // };
 
 export const buildFilter = (
-    accountId: string,
+    scope: Scope,
     folderPath: string,
     isDeleted: boolean,
     isFavorite: boolean,
@@ -32,21 +33,36 @@ export const buildFilter = (
     query?: string,
     email?: string
 ) => {
-    return {
-        ...(!isShared && { accountId }),
-        isDeleted,
-        ...(isShared && { users: email }),
-        ...(!isShared &&
-            !isFavorite &&
-            types.length === 0 && {
-                [isFile ? "folderPath" : "parentFolder"]: folderPath,
-            }),
-        ...(query && { name: { $regex: query, $options: "i" } }),
-        ...(isFile &&
-            types.length !== 0 &&
-            !isDeleted && { type: { $in: types } }),
-        ...(isFavorite && { isFavorite }),
-    };
+    const filter: Record<string, any> = { isDeleted, spaceId: scope.spaceId };
+    const hasNoTypes = types.length === 0;
+    const isSearchingByTypes = isFile && !hasNoTypes && !isDeleted;
+    const isFilteringByPath = !isShared && !isFavorite && hasNoTypes;
+
+    if (isShared) {
+        filter.users = email;
+    } else {
+        if (scope.accountId) {
+            filter.accountId = scope.accountId;
+        }
+    }
+
+    if (isFilteringByPath) {
+        filter[isFile ? "folderPath" : "parentFolder"] = folderPath;
+    }
+
+    if (query) {
+        filter.name = { $regex: query, $options: "i" };
+    }
+
+    if (isSearchingByTypes) {
+        filter.type = { $in: types };
+    }
+
+    if (isFavorite) {
+        filter.isFavorite = isFavorite;
+    }
+
+    return filter;
 };
 
 export const buildSortOptions = (sort: string): Record<string, 1 | -1> => {

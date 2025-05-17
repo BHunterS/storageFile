@@ -60,6 +60,7 @@ const FileUploader = ({ accountId, className, folderPath }: Props) => {
                     formData.append("type", type);
                     formData.append("accountId", accountId ?? "");
                     formData.append("folderPath", folderPath);
+                    // TODO add spaceId
 
                     const isUploaded = await uploadFile(formData);
 

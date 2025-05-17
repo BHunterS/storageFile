@@ -1,6 +1,11 @@
 import { Request } from "express";
 import { Types, Document } from "mongoose";
 
+export interface Scope {
+    spaceId: string | null;
+    accountId?: string;
+}
+
 export interface ISpace {
     _id?: string;
     name: string;
@@ -127,9 +132,18 @@ export interface deleteFileRequest {
 
 export interface RequestWithUserId extends Request {
     userId?: string;
+    spaceId?: string;
 }
 
-export interface RequestWithStorageName extends Request {
-    userId?: string;
+export interface RequestWithScope extends RequestWithUserId {
+    scope?: {
+        accountId?: string;
+        spaceId: string | null;
+    };
+}
+
+export interface RequestWithStorageName extends RequestWithScope {
     storageName?: string;
 }
+
+export type RequestWithScopeAndUserId = RequestWithUserId & RequestWithScope;

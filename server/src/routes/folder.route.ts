@@ -1,43 +1,48 @@
 import express from "express";
 
 import {
-    createFolder,
-    getFolders,
-    renameFolder,
-    deleteFolder,
+    handleCreateNewFolder,
+    handleRenameFolder,
+    handleDeleteFolder,
     moveFolder,
-    getFolderDetails,
-    downloadFolderAsZip,
-    getContents,
-    restoreFolder,
+    handleGetFolderDetails,
+    handleDownloadFolderAsZip,
+    handleGetContent,
+    handleRestoreFolder,
 } from "../controllers/folder.controller";
 
 import { verifyToken } from "../middlewares/verifyToken";
 import { decryptRequestBody } from "../middlewares/decryptBody";
+import { checkScope } from "../middlewares/checkScope";
+import {
+    editAccessMiddleware,
+    viewAccessMiddleware,
+} from "../middlewares/checkSpaceAccessLevel";
 
 const router = express.Router();
-router.use(verifyToken, decryptRequestBody);
+router.use(verifyToken, checkScope, decryptRequestBody);
 
 // Створення нової папки
-router.post("/", createFolder);
+router.post("/", editAccessMiddleware, handleCreateNewFolder);
 
-// Отримання списку папок (на певному рівні)
-router.get("/", getFolders);
+router.get("/:folderId/details", viewAccessMiddleware, handleGetFolderDetails);
 
-router.get("/:folderId/details", getFolderDetails);
+router.get(
+    "/:folderId/download",
+    viewAccessMiddleware,
+    handleDownloadFolderAsZip
+);
 
-router.get("/:folderId/download", downloadFolderAsZip);
-
-router.get("/content", getContents);
+router.get("/content", viewAccessMiddleware, handleGetContent);
 
 // // Перейменування папки
-router.put("/:folderId/rename", renameFolder);
+router.put("/:folderId/rename", editAccessMiddleware, handleRenameFolder);
 
 // // Видалення папки
-router.delete("/:folderId", deleteFolder);
+router.delete("/:folderId", editAccessMiddleware, handleDeleteFolder);
 
 // Restore folder from trash
-router.put("/restore/:folderId", restoreFolder);
+router.put("/restore/:folderId", editAccessMiddleware, handleRestoreFolder);
 
 // // Переміщення папки
 // router.put("/folders/:folderId/move", moveFolder);

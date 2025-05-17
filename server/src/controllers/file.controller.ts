@@ -2,8 +2,6 @@ import multer, { Multer, StorageEngine } from "multer";
 import path from "path";
 import fs from "fs";
 import mime from "mime-types";
-import mongoose from "mongoose";
-
 import { NextFunction, RequestHandler, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
@@ -15,7 +13,12 @@ import Log from "../models/log.model";
 import { createError } from "../utils/createError";
 import { isValidEmail } from "../utils/helpers";
 
-import { fileType, RequestWithUserId, RequestWithStorageName } from "types";
+import {
+    fileType,
+    RequestWithUserId,
+    RequestWithStorageName,
+    RequestWithScope,
+} from "types";
 
 const TARGET_TYPE = "file";
 
@@ -60,18 +63,20 @@ export const uploadFile = async (
     try {
         const accountId = req.userId!;
         const storageName = req.storageName!;
+        const scope = req.scope!;
         const {
             type,
             folderPath = "/",
-        }: { type: fileType; folderPath: string } = req.body;
+        }: { type: fileType; folderPath: string; spaceId: string } = req.body;
         const file: Express.Multer.File | undefined = req.file;
 
         if (!file) throw createError(400, "File not found!");
 
         if (folderPath !== "/") {
+            console.log();
             const folder = await Folder.findOne({
                 path: folderPath,
-                accountId,
+                ...scope,
             });
 
             if (!folder) throw createError(404, "Parent folder not found!");
@@ -87,6 +92,7 @@ export const uploadFile = async (
             extension: path.extname(file.originalname).slice(1),
             size: file.size,
             users: [],
+            spaceId: scope.spaceId,
         });
 
         await newFile.save();
@@ -109,24 +115,26 @@ export const uploadFile = async (
 };
 
 export const getFile = async (
-    req: RequestWithUserId,
+    req: RequestWithScope,
     res: Response,
     next: NextFunction
 ) => {
     try {
         const accountId: string = req.userId!;
         const { fileId } = req.params;
+        const scope = req.scope!;
         const download: boolean = req.query.download === "true";
 
-        const user = await User.findOne({ _id: accountId });
+        const user = await User.findById(accountId);
         const email = user?.email;
 
         const file = await File.findOne({
             _id: fileId,
-            $or: [{ accountId }, { users: email }],
+            $or: [scope, { users: email }],
         });
         if (!file) throw createError(404, "File not found!");
 
+        // TODO where find files? because file saves to creator directory
         const filePath: string = path.join(
             __dirname,
             "..",
@@ -164,19 +172,20 @@ export const getFile = async (
 };
 
 export const renameFile = async (
-    req: RequestWithUserId,
+    req: RequestWithScope,
     res: Response,
     next: NextFunction
 ) => {
     try {
         const accountId: string = req.userId!;
+        const scope = req.scope!;
         const { fileId } = req.params;
         const { newName }: { newName: string } = req.body;
 
         if (!fileId || !newName)
             throw createError(400, "Both fileId and newName are required!");
 
-        const fileDoc = await File.findOne({ _id: fileId, accountId });
+        const fileDoc = await File.findOne({ _id: fileId, ...scope });
         if (!fileDoc) throw createError(404, "File not found!");
 
         const extension: string = fileDoc.extension
@@ -190,7 +199,7 @@ export const renameFile = async (
             await File.findOne({
                 name: finalName,
                 folderPath: fileDoc.folderPath,
-                accountId,
+                ...scope,
             })
         ) {
             finalName = `${newName} (${counter})${extension}`;
@@ -219,18 +228,19 @@ export const renameFile = async (
 };
 
 export const deleteFile = async (
-    req: RequestWithUserId,
+    req: RequestWithScope,
     res: Response,
     next: NextFunction
 ) => {
     try {
         const accountId: string = req.userId!;
+        const scope = req.scope!;
         const { fileId } = req.params;
         const { permanent = false } = req.query;
 
         if (!fileId) throw createError(400, "File name is required!");
 
-        const fileDoc = await File.findOne({ _id: fileId, accountId });
+        const fileDoc = await File.findOne({ _id: fileId, ...scope });
         if (!fileDoc) throw createError(404, "File not found!");
 
         const isPermanent = permanent || fileDoc.isDeleted;
@@ -241,7 +251,7 @@ export const deleteFile = async (
                 "..",
                 "..",
                 "uploads",
-                accountId,
+                fileDoc.accountId.toString(),
                 fileDoc.storageName
             );
 
@@ -277,18 +287,19 @@ export const deleteFile = async (
 };
 
 export const restoreFile = async (
-    req: RequestWithUserId,
+    req: RequestWithScope,
     res: Response,
     next: NextFunction
 ) => {
     try {
         const { fileId } = req.params;
         const accountId: string = req.userId!;
+        const scope = req.scope!;
 
         const file = await File.findOne({
             _id: fileId,
-            accountId,
             isDeleted: true,
+            ...scope,
         });
 
         if (!file) throw createError(404, "File not found in trash!");
@@ -302,8 +313,8 @@ export const restoreFile = async (
             originalPath !== "/" &&
             !(await Folder.findOne({
                 path: originalPath,
-                accountId,
                 isDeleted: false,
+                ...scope,
             }))
         ) {
             // If original folder doesn't exist, move to root
@@ -318,10 +329,10 @@ export const restoreFile = async (
 
         while (
             await File.findOne({
-                accountId,
                 folderPath: targetPath,
                 name: fileName,
                 isDeleted: false,
+                ...scope,
             })
         ) {
             fileName = `${baseName} (${counter})${extension}`;
@@ -333,7 +344,6 @@ export const restoreFile = async (
         file.deletedAt = undefined;
         file.folderPath = targetPath;
         file.name = fileName;
-        file.url = `${process.env.SERVER_URL}/api/files/${fileName}`;
         file.originalPath = undefined;
 
         await file.save();
@@ -357,18 +367,19 @@ export const restoreFile = async (
 };
 
 export const updateFavorite = async (
-    req: RequestWithUserId,
+    req: RequestWithScope,
     res: Response,
     next: NextFunction
 ) => {
     try {
         const { fileId } = req.params;
         const accountId: string = req.userId!;
+        const scope = req.scope!;
 
         const file = await File.findOne({
             _id: fileId,
-            accountId,
             isDeleted: false,
+            ...scope,
         });
         if (!file) throw createError(404, "File not found!");
 
@@ -473,9 +484,11 @@ export const removeSharedUser = async (
 ) => {
     try {
         const accountId = req.userId!;
+        const spaceId = req.spaceId;
         const { fileId, email } = req.params;
 
-        console.log(fileId, email);
+        if (spaceId)
+            throw createError(400, "You cannot remove share files in space");
 
         if (!fileId || !email) {
             throw createError(400, "fileId and email are required");

@@ -66,7 +66,7 @@ const Search = ({ files }: { files: SFile[] }) => {
                                         <Thumbnail
                                             type={file.type}
                                             extension={file.extension}
-                                            url={`${file.url}${file._id}`}
+                                            url={`${file.url}${file._id}?spaceId=personal`}
                                             className="size-9 min-w-9"
                                         />
                                         <p className="subtitle-2 line-clamp-1 text-light-100">

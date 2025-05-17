@@ -1,4 +1,4 @@
-import { ObjectId } from "mongoose";
+import mongoose from "mongoose";
 
 import Space from "../models/space.model";
 import User from "../models/user.model";
@@ -131,7 +131,8 @@ export const addMember = async (
         // Check if user is already a member
         const isMember = space.members.some(
             (member) =>
-                member.user.toString() === (user._id as ObjectId).toString()
+                member.user.toString() ===
+                (user._id as mongoose.Types.ObjectId).toString()
         );
 
         if (isMember) {
@@ -276,8 +277,12 @@ export const deleteSpace = async (
 export const checkSpaceAccess = async (
     spaceId: string,
     userId: string
-): Promise<{ hasAccess: boolean; role?: string }> => {
+): Promise<{ hasAccess: boolean; hasEditAccess: boolean; role?: string }> => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(spaceId)) {
+            throw createError(400, "Invalid space id");
+        }
+
         const space = await Space.findOne({
             _id: spaceId,
             $or: [
@@ -288,7 +293,7 @@ export const checkSpaceAccess = async (
         });
 
         if (!space) {
-            return { hasAccess: false };
+            return { hasAccess: false, hasEditAccess: false };
         }
 
         // Determine the user's role
@@ -304,7 +309,9 @@ export const checkSpaceAccess = async (
             }
         }
 
-        return { hasAccess: true, role };
+        const hasEditAccess = role === "admin" || role === "editor";
+
+        return { hasAccess: true, hasEditAccess, role };
     } catch (error) {
         throw error;
     }

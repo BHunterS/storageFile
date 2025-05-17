@@ -15,10 +15,13 @@ const axiosInstance = axios.create({
         "Content-Type": "application/json",
     },
 });
-
+// 682712ff09e74493c6b3e704
 axiosInstance.interceptors.request.use(
     async (config) => {
         const publicKey = localStorage.getItem("publicKey");
+        const spaceId = localStorage.getItem("spaceId") || "personal";
+
+        config.headers["X-Space-Id"] = spaceId;
 
         if (
             config.headers["X-Skip-Interceptor"] !== "true" &&
@@ -91,31 +94,3 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
-
-/* 
-Клієнт (React):
-
-Отримує відкритий ключ сервера (RSA). Done
-
-Генерує AES-ключ та IV.
-
-Шифрує дані через AES.
-
-Шифрує AES-ключ через RSA (публічним ключем).
-
-Надсилає на сервер:
-
-зашифрований AES-ключ
-
-IV
-
-зашифровані дані
-
-Сервер (Express):
-
-Має свій приватний RSA-ключ.
-
-Розшифровує AES-ключ.
-
-Використовує його та IV для дешифрування даних.
-*/

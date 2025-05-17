@@ -21,7 +21,7 @@ const ImageThumbnail = ({ file }: { file: SFile }) => (
         <Thumbnail
             type={file.type}
             extension={file.extension}
-            url={`${file.url}${file._id}`}
+            url={`${file.url}${file._id}?spaceId=personal`}
         />
         <div className="flex flex-col">
             <p className="subtitle-2 mb-1">{file.name}</p>
