@@ -31,6 +31,7 @@ import Sort from "@/components/Sort";
 import FileCard from "@/components/FileCard";
 import FolderCard from "@/components/FolderCard";
 import FolderBreadcrumb from "@/components/FolderBreadcrumb";
+import Spaces from "@/components/Spaces";
 
 import { Folder, SFile } from "@/types";
 
@@ -158,12 +159,21 @@ function App() {
                                     </span>
                                 </p>
 
-                                <div className="sort-container">
-                                    <p className="body-1 hidden text-light-200 sm:block">
-                                        Sort by:
-                                    </p>
+                                <div className="sort-container flex-col md:flex-row">
+                                    <div className="w-full mb-4 md:mb-0">
+                                        <p className="body-1 hidden text-light-200 sm:block">
+                                            Sort by:
+                                        </p>
 
-                                    <Sort />
+                                        <Sort />
+                                    </div>
+                                    <div className="w-full">
+                                        <p className="body-1 hidden text-light-200 sm:block">
+                                            Your spaces:
+                                        </p>
+
+                                        <Spaces />
+                                    </div>
                                 </div>
                             </div>
                         </section>

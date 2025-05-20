@@ -1,14 +1,18 @@
 import { Link } from "react-router-dom";
 
+import { useSpaceStore } from "@/store/spaceStore";
+
 import ItemCard from "./ItemCard";
 import Thumbnail from "./Thumbnail";
 
 import { SFile } from "@/types";
 
 const FileCard = ({ file }: { file: SFile }) => {
+    const { currentSpace } = useSpaceStore();
+
     return (
         <Link
-            to={`${file.url}${file._id}?spaceId=personal`}
+            to={`${file.url}${file._id}?spaceId=${currentSpace}`}
             target="_blank"
             className="file-card"
         >
@@ -18,7 +22,7 @@ const FileCard = ({ file }: { file: SFile }) => {
                     <Thumbnail
                         type={file.type}
                         extension={file.extension}
-                        url={`${file.url}${file._id}?spaceId=personal`}
+                        url={`${file.url}${file._id}?spaceId=${currentSpace}`}
                         className="!size-20"
                         imageClassName="!size-11"
                     />

@@ -85,7 +85,7 @@ export const getFileType = (fileName: string) => {
     return { type: "other", extension };
 };
 
-export const formatDateTime = (isoString: string | null | undefined) => {
+export const formatDateTime = (isoString: string | Date | null | undefined) => {
     if (!isoString) return "—";
 
     const date = new Date(isoString);

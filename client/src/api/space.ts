@@ -31,7 +31,7 @@ export const getSpaceById = async (
 };
 
 export const getMySpaces = async (): Promise<GetMySpacesResponse> => {
-    const response: AxiosResponse = await axiosInstance.get("/my");
+    const response: AxiosResponse = await axiosInstance.get("/spaces/my");
 
     return response.data;
 };

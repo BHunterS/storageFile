@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { Search as SearchIcon } from "lucide-react";
 
+import { useSpaceStore } from "@/store/spaceStore";
+
 import { useDebounce } from "@/hooks/useDebounce";
 
 import { SERVER_URL } from "@/constants";
@@ -17,6 +19,7 @@ import { SFile } from "@/types";
 const Search = ({ files }: { files: SFile[] }) => {
     const [query, setQuery] = useState("");
     const [open, setOpen] = useState(false);
+    const { currentSpace } = useSpaceStore();
 
     const location = useLocation();
     const navigate = useNavigate();
@@ -66,7 +69,7 @@ const Search = ({ files }: { files: SFile[] }) => {
                                         <Thumbnail
                                             type={file.type}
                                             extension={file.extension}
-                                            url={`${file.url}${file._id}?spaceId=personal`}
+                                            url={`${file.url}${file._id}?spaceId=${currentSpace}`}
                                             className="size-9 min-w-9"
                                         />
                                         <p className="subtitle-2 line-clamp-1 text-light-100">

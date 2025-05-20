@@ -12,6 +12,7 @@ import EmailVerificationPage from "./pages/EmailVerificationPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ProfilePage from "./pages/ProfilePage";
 import ActionsPage from "./pages/ActionsPage";
+import SpacesPage from "./pages/SpacesPage";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import RedirectAuthenticatedUser from "./components/RedirectAuthenticatedUser";
@@ -63,6 +64,16 @@ const Root = () => {
                         <ProtectedRoute>
                             <MainLayout>
                                 <ProfilePage />
+                            </MainLayout>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/spaces"
+                    element={
+                        <ProtectedRoute>
+                            <MainLayout>
+                                <SpacesPage />
                             </MainLayout>
                         </ProtectedRoute>
                     }

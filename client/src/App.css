@@ -249,7 +249,7 @@
         @apply mx-auto flex w-full max-w-7xl flex-col items-center gap-8 !important;
     }
     .total-size-section {
-        @apply flex mt-2 flex-col justify-between sm:flex-row sm:items-center !important;
+        @apply flex mt-2 flex-col justify-between md:flex-row md:items-center !important;
     }
     .file-list {
         @apply grid w-full gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 !important;
@@ -441,7 +441,7 @@
 
     /* Sort */
     .sort-select {
-        @apply shad-no-focus h-11 w-full rounded-[8px] border-transparent bg-white !shadow-sm sm:w-[210px] !important;
+        @apply shad-no-focus h-11 w-full rounded-[8px] border-transparent bg-white !shadow-sm md:w-[210px] !important;
     }
     .sort-select-content {
         @apply !shadow-drop-3 !important;
