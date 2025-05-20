@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, UserPlus } from "lucide-react";
+
+import { addMember, updateSpace } from "@/api/space";
+
+import { useUploadStore } from "@/store/uploadStore";
 
 import {
     Dialog,
@@ -23,9 +27,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { updateSpace } from "@/api/space";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+
 import { Space } from "@/types";
-import { useUploadStore } from "@/store/uploadStore";
 
 type Props = {
     space: Space;
@@ -36,6 +46,12 @@ const SpaceActions = ({ space, handleDeleteSpace }: Props) => {
     const [open, setOpen] = useState(false);
     const [name, setName] = useState(space.name);
     const [description, setDescription] = useState(space.description || "");
+
+    const [addDialogOpen, setAddDialogOpen] = useState(false);
+    const [email, setEmail] = useState("");
+    const [role, setRole] = useState<"admin" | "editor" | "viewer">("viewer");
+    const [isAdding, setIsAdding] = useState(false);
+
     const { toggleTrigger } = useUploadStore();
 
     const handleUpdate = async () => {
@@ -48,8 +64,68 @@ const SpaceActions = ({ space, handleDeleteSpace }: Props) => {
         }
     };
 
+    const handleAddMember = async () => {
+        try {
+            setIsAdding(true);
+            await addMember(space._id, { email, role });
+            toggleTrigger();
+            setAddDialogOpen(false);
+            setEmail("");
+            setRole("viewer");
+        } catch (error) {
+            console.error("Error adding member:", error);
+        } finally {
+            setIsAdding(false);
+        }
+    };
+
     return (
         <div className="flex items-center gap-2">
+            {/* Add member button */}
+            <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                <DialogTrigger asChild>
+                    <button
+                        className="p-1 rounded hover:bg-muted"
+                        title="Add member"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <UserPlus className="w-6 h-6 text-muted-foreground" />
+                    </button>
+                </DialogTrigger>
+                <DialogContent onClick={(e) => e.stopPropagation()}>
+                    <DialogHeader>
+                        <DialogTitle>Add Member</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <Input
+                            placeholder="Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                        <Select
+                            value={role}
+                            onValueChange={(
+                                val: "admin" | "editor" | "viewer"
+                            ) => setRole(val)}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="editor">Editor</SelectItem>
+                                <SelectItem value="viewer">Viewer</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={handleAddMember} disabled={isAdding}>
+                            {isAdding ? "Adding..." : "Add"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             {/* Edit Button */}
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
@@ -83,6 +159,7 @@ const SpaceActions = ({ space, handleDeleteSpace }: Props) => {
                 </DialogContent>
             </Dialog>
 
+            {/* Delete Button */}
             <AlertDialog>
                 <AlertDialogTrigger asChild>
                     <button

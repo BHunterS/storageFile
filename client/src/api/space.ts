@@ -62,10 +62,12 @@ export const addMember = async (
 
 export const changeMemberRole = async (
     spaceId: string,
-    memberId: string
+    memberId: string,
+    role: string
 ): Promise<BaseSpaceResponse> => {
     const response: AxiosResponse = await axiosInstance.put(
-        `/spaces/${spaceId}/members/${memberId}`
+        `/spaces/${spaceId}/members/${memberId}`,
+        { role }
     );
 
     return response.data;

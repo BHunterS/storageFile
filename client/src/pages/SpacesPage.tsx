@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronUp, Inbox, Users, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Inbox, Users } from "lucide-react";
 
 import { getMySpaces, removeMember, deleteSpace } from "@/api/space";
 import { useUploadStore } from "@/store/uploadStore";
@@ -179,27 +179,23 @@ const SpacesPage = () => {
                                                                 spaceId={
                                                                     space._id
                                                                 }
+                                                                memberId={
+                                                                    (
+                                                                        member.user as User
+                                                                    )._id
+                                                                }
+                                                                memberName={
+                                                                    (
+                                                                        member.user as User
+                                                                    )?.name
+                                                                }
+                                                                memberRole={
+                                                                    member.role
+                                                                }
+                                                                handleRemoveMember={
+                                                                    handleRemoveMember
+                                                                }
                                                             />
-                                                            <button
-                                                                className="p-1 rounded hover:bg-muted"
-                                                                onClick={(
-                                                                    e
-                                                                ) => {
-                                                                    e.stopPropagation();
-                                                                    handleRemoveMember(
-                                                                        space._id,
-                                                                        typeof member.user ===
-                                                                            "string"
-                                                                            ? member.user
-                                                                            : member
-                                                                                  .user
-                                                                                  ._id
-                                                                    );
-                                                                }}
-                                                                title="Remove member"
-                                                            >
-                                                                <X className="w-6 h-6 text-muted-foreground" />
-                                                            </button>
                                                         </div>
                                                     );
                                                 })}
