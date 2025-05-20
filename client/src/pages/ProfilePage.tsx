@@ -23,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
 
 import { AlertCircle, Save, User, Mail, Phone, MapPin } from "lucide-react";
 
@@ -31,6 +32,7 @@ import { UpdateUserInfoRequest } from "@/types/profile";
 const ProfilePage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [gcloudEnabled, setGcloudEnabled] = useState<boolean>(false);
     const [profile, setProfile] = useState<UpdateUserInfoRequest>({
         name: "",
         email: "",
@@ -244,6 +246,18 @@ const ProfilePage: React.FC = () => {
                                         </div>
                                     )}
                                 </div>
+                            </div>
+                            <Separator />
+                            <div className="flex items-center space-x-4">
+                                <Switch
+                                    id="gcloud"
+                                    checked={gcloudEnabled}
+                                    onCheckedChange={setGcloudEnabled}
+                                />
+                                <Label htmlFor="gcloud">
+                                    {gcloudEnabled ? "Disable" : "Enable"}{" "}
+                                    google cloud storage instead of fileStorage?
+                                </Label>
                             </div>
                         </CardContent>
                     </Card>
