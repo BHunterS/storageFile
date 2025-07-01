@@ -4,8 +4,6 @@
 
 🔗 [Live Demo](https://bhunters.github.io/storageFile)
 
----
-
 ## 🚀 Features
 
 ### 🔐 Security First
@@ -35,8 +33,6 @@
 - **Google Cloud Storage (GCS)** integration
 - Persistent file access across sessions and devices
 
----
-
 ## 🛠️ Tech Stack
 
 ### Frontend
@@ -51,8 +47,6 @@
 - **JWT**, **OTP (One-Time Password)** support
 - **Crypto (RSA & AES)**, **CORS**, **Helmet**, **Multer**
 - **Archiver** for zip file packaging
-
----
 
 ## Requirements
 
